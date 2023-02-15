@@ -53,7 +53,7 @@ int main() {
     fwrite("\x00\x00\x00\x00", 4, 1, fptrOut); // Subchunk 2 Size (will be filled later)
 
     while(!eof){
-    	long ret=ov_read(&vf,pcmout,sizeof(pcmout),&current_section);
+    	long ret=ov_read(&vf,pcmout,sizeof(pcmout));
     	if (ret == 0) {  		/* EOF */
     		eof=1;
     	} else if (ret < 0) {

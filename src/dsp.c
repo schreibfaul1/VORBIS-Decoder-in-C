@@ -46,17 +46,17 @@ int vorbis_dsp_restart(vorbis_dsp_state *v){
 vorbis_dsp_state *vorbis_dsp_create(vorbis_info *vi){
   int i;
 
-  vorbis_dsp_state *v=_ogg_calloc(1,sizeof(*v));
+  vorbis_dsp_state *v=calloc(1,sizeof(*v));
   codec_setup_info *ci=(codec_setup_info *)vi->codec_setup;
 
   v->vi=vi;
   
-  v->work=(ogg_int32_t **)_ogg_malloc(vi->channels*sizeof(*v->work));
-  v->mdctright=(ogg_int32_t **)_ogg_malloc(vi->channels*sizeof(*v->mdctright));
+  v->work=(ogg_int32_t **)malloc(vi->channels*sizeof(*v->work));
+  v->mdctright=(ogg_int32_t **)malloc(vi->channels*sizeof(*v->mdctright));
   for(i=0;i<vi->channels;i++){
-    v->work[i]=(ogg_int32_t *)_ogg_calloc(1,(ci->blocksizes[1]>>1)*
+    v->work[i]=(ogg_int32_t *)calloc(1,(ci->blocksizes[1]>>1)*
 					  sizeof(*v->work[i]));
-    v->mdctright[i]=(ogg_int32_t *)_ogg_calloc(1,(ci->blocksizes[1]>>2)*
+    v->mdctright[i]=(ogg_int32_t *)calloc(1,(ci->blocksizes[1]>>2)*
 					       sizeof(*v->mdctright[i]));
   }
 
@@ -74,16 +74,16 @@ void vorbis_dsp_destroy(vorbis_dsp_state *v){
 
     if(v->work){
       for(i=0;i<vi->channels;i++)
-        if(v->work[i])_ogg_free(v->work[i]);
-      _ogg_free(v->work);
+        if(v->work[i])free(v->work[i]);
+      free(v->work);
     }
     if(v->mdctright){
       for(i=0;i<vi->channels;i++)
-        if(v->mdctright[i])_ogg_free(v->mdctright[i]);
-      _ogg_free(v->mdctright);
+        if(v->mdctright[i])free(v->mdctright[i]);
+      free(v->mdctright);
     }
 
-    _ogg_free(v);
+    free(v);
   }
 }
 

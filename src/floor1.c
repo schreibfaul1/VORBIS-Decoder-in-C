@@ -33,14 +33,14 @@ extern const ogg_int32_t FLOOR_fromdB_LOOKUP[];
 void floor1_free_info(vorbis_info_floor *i){
   vorbis_info_floor1 *info=(vorbis_info_floor1 *)i;
   if(info){
-    if(info->class)_ogg_free(info->class);
-    if(info->partitionclass)_ogg_free(info->partitionclass);
-    if(info->postlist)_ogg_free(info->postlist);
-    if(info->forward_index)_ogg_free(info->forward_index);
-    if(info->hineighbor)_ogg_free(info->hineighbor);
-    if(info->loneighbor)_ogg_free(info->loneighbor);
+    if(info->class)free(info->class);
+    if(info->partitionclass)free(info->partitionclass);
+    if(info->postlist)free(info->postlist);
+    if(info->forward_index)free(info->forward_index);
+    if(info->hineighbor)free(info->hineighbor);
+    if(info->loneighbor)free(info->loneighbor);
     memset(info,0,sizeof(*info));
-    _ogg_free(info);
+    free(info);
   }
 }
 
@@ -55,7 +55,7 @@ static int ilog(unsigned int v){
 
 static void vorbis_mergesort(char *index,ogg_uint16_t *vals,ogg_uint16_t n){
   ogg_uint16_t i,j;
-  char *temp,*A=index,*B=_ogg_malloc(n*sizeof(*B));
+  char *temp,*A=index,*B=malloc(n*sizeof(*B));
 
   for(i=1;i<n;i<<=1){
     for(j=0;j+i<n;){
@@ -78,9 +78,9 @@ static void vorbis_mergesort(char *index,ogg_uint16_t *vals,ogg_uint16_t n){
  
   if(B==index){
     for(j=0;j<n;j++)B[j]=A[j];
-    _ogg_free(A);
+    free(A);
   }else
-    _ogg_free(B);
+    free(B);
 }
 
 
@@ -88,11 +88,11 @@ vorbis_info_floor *floor1_info_unpack (vorbis_info *vi,oggpack_buffer *opb){
   codec_setup_info     *ci=(codec_setup_info *)vi->codec_setup;
   int j,k,count=0,maxclass=-1,rangebits;
   
-  vorbis_info_floor1 *info=(vorbis_info_floor1 *)_ogg_calloc(1,sizeof(*info));
+  vorbis_info_floor1 *info=(vorbis_info_floor1 *)calloc(1,sizeof(*info));
   /* read partitions */
   info->partitions=oggpack_read(opb,5); /* only 0 to 31 legal */
   info->partitionclass=
-    (char *)_ogg_malloc(info->partitions*sizeof(*info->partitionclass));
+    (char *)malloc(info->partitions*sizeof(*info->partitionclass));
   for(j=0;j<info->partitions;j++){
     info->partitionclass[j]=oggpack_read(opb,4); /* only 0 to 15 legal */
     if(maxclass<info->partitionclass[j])maxclass=info->partitionclass[j];
@@ -100,7 +100,7 @@ vorbis_info_floor *floor1_info_unpack (vorbis_info *vi,oggpack_buffer *opb){
 
   /* read partition classes */
   info->class=
-    (floor1class *)_ogg_malloc((maxclass+1)*sizeof(*info->class));
+    (floor1class *)malloc((maxclass+1)*sizeof(*info->class));
   for(j=0;j<maxclass+1;j++){
     info->class[j].class_dim=oggpack_read(opb,3)+1; /* 1 to 8 */
     info->class[j].class_subs=oggpack_read(opb,2); /* 0,1,2,3 bits */
@@ -124,13 +124,13 @@ vorbis_info_floor *floor1_info_unpack (vorbis_info *vi,oggpack_buffer *opb){
   for(j=0,k=0;j<info->partitions;j++)
     count+=info->class[info->partitionclass[j]].class_dim; 
   info->postlist=
-    (ogg_uint16_t *)_ogg_malloc((count+2)*sizeof(*info->postlist));
+    (ogg_uint16_t *)malloc((count+2)*sizeof(*info->postlist));
   info->forward_index=
-    (char *)_ogg_malloc((count+2)*sizeof(*info->forward_index));
+    (char *)malloc((count+2)*sizeof(*info->forward_index));
   info->loneighbor=
-    (char *)_ogg_malloc(count*sizeof(*info->loneighbor));
+    (char *)malloc(count*sizeof(*info->loneighbor));
   info->hineighbor=
-    (char *)_ogg_malloc(count*sizeof(*info->hineighbor));
+    (char *)malloc(count*sizeof(*info->hineighbor));
 
   count=0;
   for(j=0,k=0;j<info->partitions;j++){

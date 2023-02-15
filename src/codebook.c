@@ -192,7 +192,7 @@ static int _make_decode_table(codebook *s,char *lengthlist,long quantvals,
   ogg_uint32_t *work;
 
   if(s->dec_nodeb==4){
-    s->dec_table=_ogg_malloc((s->used_entries*2+1)*sizeof(*work));
+    s->dec_table=malloc((s->used_entries*2+1)*sizeof(*work));
     /* +1 (rather than -2) is to accommodate 0 and 1 sized books,
        which are specialcased to nodeb==4 */
     if(_make_words(lengthlist,s->entries,
@@ -203,7 +203,7 @@ static int _make_decode_table(codebook *s,char *lengthlist,long quantvals,
 
   work=alloca((s->used_entries*2-2)*sizeof(*work));
   if(_make_words(lengthlist,s->entries,work,quantvals,s,opb,maptype))return 1;
-  s->dec_table=_ogg_malloc((s->used_entries*(s->dec_leafw+1)-2)*
+  s->dec_table=malloc((s->used_entries*(s->dec_leafw+1)-2)*
 			   s->dec_nodeb);
   
   if(s->dec_leafw==1){
@@ -329,8 +329,8 @@ long _book_maptype1_quantvals(codebook *b){
 void vorbis_book_clear(codebook *b){
   /* static book is not cleared; we're likely called on the lookup and
      the static codebook belongs to the info struct */
-  if(b->q_val)_ogg_free(b->q_val);
-  if(b->dec_table)_ogg_free(b->dec_table);
+  if(b->q_val)free(b->q_val);
+  if(b->dec_table)free(b->dec_table);
 
   memset(b,0,sizeof(*b));
 }
@@ -478,11 +478,11 @@ int vorbis_book_unpack(oggpack_buffer *opb,codebook *s){
 
 	/* need quantized values before */
 	if(s->q_bits<=8){
-	  s->q_val=_ogg_malloc(quantvals);
+	  s->q_val=malloc(quantvals);
 	  for(i=0;i<quantvals;i++)
 	    ((unsigned char *)s->q_val)[i]=oggpack_read(opb,s->q_bits);
 	}else{
-	  s->q_val=_ogg_malloc(quantvals*2);
+	  s->q_val=malloc(quantvals*2);
 	  for(i=0;i<quantvals;i++)
 	    ((ogg_uint16_t *)s->q_val)[i]=oggpack_read(opb,s->q_bits);
 	}
@@ -524,7 +524,7 @@ int vorbis_book_unpack(oggpack_buffer *opb,codebook *s){
 
       /* get the vals & pack them */
       s->q_pack=(s->q_bits+7)/8*s->dim;
-      s->q_val=_ogg_malloc(s->q_pack*s->used_entries);
+      s->q_val=malloc(s->q_pack*s->used_entries);
 
       if(s->q_bits<=8){
 	for(i=0;i<s->used_entries*s->dim;i++)

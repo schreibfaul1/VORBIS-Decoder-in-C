@@ -29,9 +29,9 @@
 
 void mapping_clear_info(vorbis_info_mapping *info){
   if(info){
-    if(info->chmuxlist)_ogg_free(info->chmuxlist);
-    if(info->submaplist)_ogg_free(info->submaplist);
-    if(info->coupling)_ogg_free(info->coupling);
+    if(info->chmuxlist)free(info->chmuxlist);
+    if(info->submaplist)free(info->submaplist);
+    if(info->coupling)free(info->coupling);
     memset(info,0,sizeof(*info));
   }
 }
@@ -61,7 +61,7 @@ int mapping_info_unpack(vorbis_info_mapping *info,vorbis_info *vi,
   if(oggpack_read(opb,1)){
     info->coupling_steps=oggpack_read(opb,8)+1;
     info->coupling=
-      _ogg_malloc(info->coupling_steps*sizeof(*info->coupling));
+      malloc(info->coupling_steps*sizeof(*info->coupling));
     
     for(i=0;i<info->coupling_steps;i++){
       int testM=info->coupling[i].mag=oggpack_read(opb,ilog(vi->channels));
@@ -79,14 +79,14 @@ int mapping_info_unpack(vorbis_info_mapping *info,vorbis_info *vi,
   if(oggpack_read(opb,2)>0)goto err_out; /* 2,3:reserved */
     
   if(info->submaps>1){
-    info->chmuxlist=_ogg_malloc(sizeof(*info->chmuxlist)*vi->channels);
+    info->chmuxlist=malloc(sizeof(*info->chmuxlist)*vi->channels);
     for(i=0;i<vi->channels;i++){
       info->chmuxlist[i]=oggpack_read(opb,4);
       if(info->chmuxlist[i]>=info->submaps)goto err_out;
     }
   }
 
-  info->submaplist=_ogg_malloc(sizeof(*info->submaplist)*info->submaps);
+  info->submaplist=malloc(sizeof(*info->submaplist)*info->submaps);
   for(i=0;i<info->submaps;i++){
     int temp=oggpack_read(opb,8);
     info->submaplist[i].floor=oggpack_read(opb,8);

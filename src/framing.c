@@ -33,7 +33,7 @@
    reference form. */
 
 static ogg_buffer_state *ogg_buffer_create(void){
-  ogg_buffer_state *bs=_ogg_calloc(1,sizeof(*bs));
+  ogg_buffer_state *bs=calloc(1,sizeof(*bs));
   return bs;
 }
 
@@ -56,19 +56,19 @@ static void _ogg_buffer_destroy(ogg_buffer_state *bs){
     while(bt){
       ogg_buffer *b=bt;
       bt=b->ptr.next;
-      if(b->data)_ogg_free(b->data);
-      _ogg_free(b);
+      if(b->data)free(b->data);
+      free(b);
     }
     bs->unused_buffers=0;
     while(rt){
       ogg_reference *r=rt;
       rt=r->next;
-      _ogg_free(r);
+      free(r);
     }
     bs->unused_references=0;
 
     if(!bs->outstanding)
-      _ogg_free(bs);
+      free(bs);
 
   }
 }
@@ -89,13 +89,13 @@ static ogg_buffer *_fetch_buffer(ogg_buffer_state *bs,long bytes){
 
     /* if the unused buffer is too small, grow it */
     if(ob->size<bytes){
-      ob->data=_ogg_realloc(ob->data,bytes);
+      ob->data=realloc(ob->data,bytes);
       ob->size=bytes;
     }
   }else{
     /* allocate a new buffer */
-    ob=_ogg_malloc(sizeof(*ob));
-    ob->data=_ogg_malloc(bytes<16?16:bytes);
+    ob=malloc(sizeof(*ob));
+    ob->data=malloc(bytes<16?16:bytes);
     ob->size=bytes;
   }
 
@@ -114,7 +114,7 @@ static ogg_reference *_fetch_ref(ogg_buffer_state *bs){
     bs->unused_references=or->next;
   }else{
     /* allocate a new reference */
-    or=_ogg_malloc(sizeof(*or));
+    or=malloc(sizeof(*or));
   }
 
   or->begin=0;
@@ -138,7 +138,7 @@ static void ogg_buffer_realloc(ogg_reference *or,long bytes){
   
   /* if the unused buffer is too small, grow it */
   if(ob->size<bytes){
-    ob->data=_ogg_realloc(ob->data,bytes);
+    ob->data=realloc(ob->data,bytes);
     ob->size=bytes;
   }
 }
@@ -558,7 +558,7 @@ static ogg_uint32_t crc_lookup[256]={
   0xbcb4666d,0xb8757bda,0xb5365d03,0xb1f740b4};
 
 ogg_sync_state *ogg_sync_create(void){
-  ogg_sync_state *oy=_ogg_calloc(1,sizeof(*oy));
+  ogg_sync_state *oy=calloc(1,sizeof(*oy));
   memset(oy,0,sizeof(*oy));
   oy->bufferpool=ogg_buffer_create();
   return oy;
@@ -569,7 +569,7 @@ int ogg_sync_destroy(ogg_sync_state *oy){
     ogg_sync_reset(oy);
     ogg_buffer_destroy(oy->bufferpool);
     memset(oy,0,sizeof(*oy));
-    _ogg_free(oy);
+    free(oy);
   }
   return OGG_SUCCESS;
 }
@@ -813,7 +813,7 @@ int ogg_sync_reset(ogg_sync_state *oy){
 }
 
 ogg_stream_state *ogg_stream_create(int serialno){
-  ogg_stream_state *os=_ogg_calloc(1,sizeof(*os));
+  ogg_stream_state *os=calloc(1,sizeof(*os));
   os->serialno=serialno;
   os->pageno=-1;
   return os;
@@ -824,7 +824,7 @@ int ogg_stream_destroy(ogg_stream_state *os){
     ogg_buffer_release(os->header_tail);
     ogg_buffer_release(os->body_tail);
     memset(os,0,sizeof(*os));    
-    _ogg_free(os);
+    free(os);
   }
   return OGG_SUCCESS;
 } 

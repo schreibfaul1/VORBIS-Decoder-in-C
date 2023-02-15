@@ -221,8 +221,8 @@ static int _bisect_forward_serialno(OggVorbis_File *vf,
   if(searched>=end || ret<0){
     ogg_page_release(&og);
     vf->links=m+1;
-    vf->offsets=_ogg_malloc((vf->links+1)*sizeof(*vf->offsets));
-    vf->serialnos=_ogg_malloc(vf->links*sizeof(*vf->serialnos));
+    vf->offsets=malloc((vf->links+1)*sizeof(*vf->offsets));
+    vf->serialnos=malloc(vf->links*sizeof(*vf->serialnos));
     vf->offsets[m+1]=searched;
   }else{
     ret=_bisect_forward_serialno(vf,next,vf->offset,
@@ -359,8 +359,8 @@ static void _prefetch_all_offsets(OggVorbis_File *vf, ogg_int64_t dataoffset){
   int i;
   ogg_int64_t ret;
   
-  vf->dataoffsets=_ogg_malloc(vf->links*sizeof(*vf->dataoffsets));
-  vf->pcmlengths=_ogg_malloc(vf->links*2*sizeof(*vf->pcmlengths));
+  vf->dataoffsets=malloc(vf->links*sizeof(*vf->dataoffsets));
+  vf->pcmlengths=malloc(vf->links*2*sizeof(*vf->pcmlengths));
   
   for(i=0;i<vf->links;i++){
     if(i==0){
@@ -761,18 +761,15 @@ int ov_clear(OggVorbis_File *vf){
     ogg_stream_destroy(vf->os);
     vorbis_info_clear(&vf->vi);
     vorbis_comment_clear(&vf->vc);
-    if(vf->dataoffsets)_ogg_free(vf->dataoffsets);
-    if(vf->pcmlengths)_ogg_free(vf->pcmlengths);
-    if(vf->serialnos)_ogg_free(vf->serialnos);
-    if(vf->offsets)_ogg_free(vf->offsets);
+    if(vf->dataoffsets)free(vf->dataoffsets);
+    if(vf->pcmlengths)free(vf->pcmlengths);
+    if(vf->serialnos)free(vf->serialnos);
+    if(vf->offsets)free(vf->offsets);
     ogg_sync_destroy(vf->oy);
 
     if(vf->datasource)(vf->callbacks.close_func)(vf->datasource);
     memset(vf,0,sizeof(*vf));
   }
-#ifdef DEBUG_LEAKS
-  _VDBG_dump();
-#endif
   return 0;
 }
 
@@ -1554,7 +1551,7 @@ vorbis_comment *ov_comment(OggVorbis_File *vf,int link){
 
 	    *section) set to the logical bitstream number */
 
-long ov_read(OggVorbis_File *vf,void *buffer,int bytes_req,int *bitstream){
+long ov_read(OggVorbis_File *vf,void *buffer,int bytes_req){
 
   long samples;
   long channels;
@@ -1569,7 +1566,6 @@ long ov_read(OggVorbis_File *vf,void *buffer,int bytes_req,int *bitstream){
 	if(samples>0){
 	  vorbis_dsp_read(vf->vd,samples);
 	  vf->pcm_offset+=samples;
-	  if(bitstream)*bitstream=vf->current_link;
 	  return samples*2*channels;
 	}
 	return samples;

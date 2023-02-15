@@ -27,8 +27,8 @@
 
 void res_clear_info(vorbis_info_residue *info){
   if(info){
-    if(info->stagemasks)_ogg_free(info->stagemasks);
-    if(info->stagebooks)_ogg_free(info->stagebooks);
+    if(info->stagemasks)free(info->stagemasks);
+    if(info->stagebooks)free(info->stagebooks);
     memset(info,0,sizeof(*info));
   }
 }
@@ -50,8 +50,8 @@ int res_unpack(vorbis_info_residue *info,
   info->groupbook=oggpack_read(opb,8);
   if(info->groupbook>=ci->books)goto errout;
 
-  info->stagemasks=_ogg_malloc(info->partitions*sizeof(*info->stagemasks));
-  info->stagebooks=_ogg_malloc(info->partitions*8*sizeof(*info->stagebooks));
+  info->stagemasks=malloc(info->partitions*sizeof(*info->stagemasks));
+  info->stagebooks=malloc(info->partitions*8*sizeof(*info->stagebooks));
 
   for(j=0;j<info->partitions;j++){
     int cascade=oggpack_read(opb,3);

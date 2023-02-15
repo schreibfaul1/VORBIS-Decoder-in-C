@@ -340,14 +340,14 @@ void vorbis_lsp_to_curve(ogg_int32_t *curve,int n,int ln,
 
 void floor0_free_info(vorbis_info_floor *i){
   vorbis_info_floor0 *info=(vorbis_info_floor0 *)i;
-  if(info)_ogg_free(info);
+  if(info)free(info);
 }
 
 vorbis_info_floor *floor0_info_unpack (vorbis_info *vi,oggpack_buffer *opb){
   codec_setup_info     *ci=(codec_setup_info *)vi->codec_setup;
   int j;
 
-  vorbis_info_floor0 *info=(vorbis_info_floor0 *)_ogg_malloc(sizeof(*info));
+  vorbis_info_floor0 *info=(vorbis_info_floor0 *)malloc(sizeof(*info));
   info->order=oggpack_read(opb,8);
   info->rate=oggpack_read(opb,16);
   info->barkmap=oggpack_read(opb,16);
