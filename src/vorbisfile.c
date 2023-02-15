@@ -531,6 +531,7 @@ static int _open_seekable2(OggVorbis_File *vf){
 static int _fetch_and_process_packet(OggVorbis_File *vf,
 				     int readp,
 				     int spanp){
+
   ogg_page og={0,0,0,0};
   ogg_packet op={0,0,0,0,0,0};
   int ret=0;
@@ -775,7 +776,7 @@ int ov_clear(OggVorbis_File *vf){
 
 /* inspects the OggVorbis file and finds/documents all the logical
    bitstreams contained in it.  Tries to be tolerant of logical
-   bitstream sections that are truncated/woogie. 
+   bitstream sections that are truncated/woogie.
 
    return: -1) error
             0) OK

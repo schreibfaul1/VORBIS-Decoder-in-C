@@ -20,10 +20,6 @@
 #include "ivorbiscodec.h"
 #include "os_types.h"
 
-/*#define _VDBG_GRAPHFILE "_0.m"*/
-
-#include "asm_arm.h"
-
 #define _V_WIDE_MATH
 
 /* 64 bit multiply */
