@@ -26,7 +26,7 @@
 #include "os.h"
 
 #define LSP_FRACBITS 14
-extern const ogg_int32_t FLOOR_fromdB_LOOKUP[];
+extern const int32_t FLOOR_fromdB_LOOKUP[];
 
 /*************** LSP decode ********************/
 
@@ -37,7 +37,7 @@ extern const ogg_int32_t FLOOR_fromdB_LOOKUP[];
    returns in m.8 format */
 
 static long ADJUST_SQRT2[2]={8192,5792};
-static inline ogg_int32_t vorbis_invsqlook_i(long a,long e){
+static inline int32_t vorbis_invsqlook_i(long a,long e){
   long i=(a&0x7fff)>>(INVSQ_LOOKUP_I_SHIFT-1); 
   long d=a&INVSQ_LOOKUP_I_MASK;                              /*  0.10 */
   long val=INVSQ_LOOKUP_I[i]-                                /*  1.16 */
@@ -49,23 +49,17 @@ static inline ogg_int32_t vorbis_invsqlook_i(long a,long e){
 
 /* interpolated lookup based fromdB function, domain -140dB to 0dB only */
 /* a is in n.12 format */
-#ifdef _LOW_ACCURACY_
-static inline ogg_int32_t vorbis_fromdBlook_i(long a){
-  if(a>0) return 0x7fffffff;
-  if(a<(-140<<12)) return 0;
-  return FLOOR_fromdB_LOOKUP[((a+140)*467)>>20]<<9;
-}
-#else
-static inline ogg_int32_t vorbis_fromdBlook_i(long a){
+
+static inline int32_t vorbis_fromdBlook_i(long a){
   if(a>0) return 0x7fffffff;
   if(a<(-140<<12)) return 0;
   return FLOOR_fromdB_LOOKUP[((a+(140<<12))*467)>>20];
 }
-#endif
+
 
 /* interpolated lookup based cos function, domain 0 to PI only */
 /* a is in 0.16 format, where 0==0, 2^^16-1==PI, return 0.14 */
-static inline ogg_int32_t vorbis_coslook_i(long a){
+static inline int32_t vorbis_coslook_i(long a){
   int i=a>>COS_LOOKUP_I_SHIFT;
   int d=a&COS_LOOKUP_I_MASK;
   return COS_LOOKUP_I[i]- ((d*(COS_LOOKUP_I[i]-COS_LOOKUP_I[i+1]))>>
@@ -74,7 +68,7 @@ static inline ogg_int32_t vorbis_coslook_i(long a){
 
 /* interpolated half-wave lookup based cos function */
 /* a is in 0.16 format, where 0==0, 2^^16==PI, return .LSP_FRACBITS */
-static inline ogg_int32_t vorbis_coslook2_i(long a){
+static inline int32_t vorbis_coslook2_i(long a){
   int i=a>>COS_LOOKUP_I_SHIFT;
   int d=a&COS_LOOKUP_I_MASK;
   return ((COS_LOOKUP_I[i]<<COS_LOOKUP_I_SHIFT)-
@@ -82,7 +76,7 @@ static inline ogg_int32_t vorbis_coslook2_i(long a){
     (COS_LOOKUP_I_SHIFT-LSP_FRACBITS+14);
 }
 
-static const ogg_uint16_t barklook[54]={
+static const uint16_t barklook[54]={
   0,51,102,154,            206,258,311,365,
   420,477,535,594,         656,719,785,854,
   926,1002,1082,1166,      1256,1352,1454,1564,
@@ -93,7 +87,7 @@ static const ogg_uint16_t barklook[54]={
 };
 
 /* used in init only; interpolate the long way */
-static inline ogg_int32_t toBARK(int n){
+static inline int32_t toBARK(int n){
   int i;
   for(i=0;i<54;i++) 
     if(n>=barklook[i] && n<barklook[i+1])break;
@@ -122,11 +116,11 @@ static const unsigned char MLOOP_2[64]={
 
 static const unsigned char MLOOP_3[8]={0,1,2,2,3,3,3,3};
 
-void vorbis_lsp_to_curve(ogg_int32_t *curve,int n,int ln,
-			 ogg_int32_t *lsp,int m,
-			 ogg_int32_t amp,
-			 ogg_int32_t ampoffset,
-			 ogg_int32_t nyq){
+void vorbis_lsp_to_curve(int32_t *curve,int n,int ln,
+			 int32_t *lsp,int m,
+			 int32_t amp,
+			 int32_t ampoffset,
+			 int32_t nyq){
 
   /* 0 <= m < 256 */
 
@@ -134,11 +128,11 @@ void vorbis_lsp_to_curve(ogg_int32_t *curve,int n,int ln,
   int i;
   int ampoffseti=ampoffset*4096;
   int ampi=amp;
-  ogg_int32_t *ilsp=(ogg_int32_t *)alloca(m*sizeof(*ilsp));
+  int32_t *ilsp=(int32_t *)alloca(m*sizeof(*ilsp));
 
   // ogg_uint32_t inyq= (1UL<<31) / toBARK(nyq);
-  ogg_uint32_t imap= (1UL<<31) / ln;
-  ogg_uint32_t tBnyq1 = toBARK(nyq)<<1;
+  uint32_t imap= (1UL<<31) / ln;
+  uint32_t tBnyq1 = toBARK(nyq)<<1;
 
   /* Besenham for frequency scale to avoid a division */
   int f=0;
@@ -151,7 +145,7 @@ void vorbis_lsp_to_curve(ogg_int32_t *curve,int n,int ln,
 #ifdef _LOW_ACCURACY_
   ogg_uint32_t nextbark=((tBnyq1<<11)/ln)>>12;
 #else
-  ogg_uint32_t nextbark=MULT31(imap>>1,tBnyq1);
+  uint32_t nextbark=MULT31(imap>>1,tBnyq1);
 #endif
   int nextf=barklook[nextbark>>14]+(((nextbark&0x3fff)*
 	    (barklook[(nextbark>>14)+1]-barklook[nextbark>>14]))>>14);
@@ -159,7 +153,7 @@ void vorbis_lsp_to_curve(ogg_int32_t *curve,int n,int ln,
   /* lsp is in 8.24, range 0 to PI; coslook wants it in .16 0 to 1*/
   for(i=0;i<m;i++){
 #ifndef _LOW_ACCURACY_
-    ogg_int32_t val=MULT32(lsp[i],0x517cc2);
+    int32_t val=MULT32(lsp[i],0x517cc2);
 #else
     ogg_int32_t val=((lsp[i]>>10)*0x517d)>>14;
 #endif
@@ -176,39 +170,15 @@ void vorbis_lsp_to_curve(ogg_int32_t *curve,int n,int ln,
   i=0;
   while(i<n){
     int j;
-    ogg_uint32_t pi=46341; /* 2**-.5 in 0.16 */
-    ogg_uint32_t qi=46341;
-    ogg_int32_t qexp=0,shift;
-    ogg_int32_t wi;
+    uint32_t pi=46341; /* 2**-.5 in 0.16 */
+    uint32_t qi=46341;
+    int32_t qexp=0,shift;
+    int32_t wi;
 
     wi=vorbis_coslook2_i((map*imap)>>15);
 
 
-#ifdef _V_LSP_MATH_ASM
-    lsp_loop_asm(&qi,&pi,&qexp,ilsp,wi,m);
 
-    pi=((pi*pi)>>16);
-    qi=((qi*qi)>>16);
-    
-    if(m&1){
-      qexp= qexp*2-28*((m+1)>>1)+m;	     
-      pi*=(1<<14)-((wi*wi)>>14);
-      qi+=pi>>14;     
-    }else{
-      qexp= qexp*2-13*m;
-      
-      pi*=(1<<14)-wi;
-      qi*=(1<<14)+wi;
-      
-      qi=(qi+pi)>>14;
-    }
-    
-    if(qi&0xffff0000){ /* checks for 1.xxxxxxxxxxxxxxxx */
-      qi>>=1; qexp++; 
-    }else
-      lsp_norm_asm(&qi,&qexp);
-
-#else
 
     qi*=labs(ilsp[0]-wi);
     pi*=labs(ilsp[1]-wi);
@@ -282,16 +252,13 @@ void vorbis_lsp_to_curve(ogg_int32_t *curve,int n,int ln,
 	qi<<=1; qexp--; 
       }
 
-#endif
+
 
     amp=vorbis_fromdBlook_i(ampi*                     /*  n.4         */
 			    vorbis_invsqlook_i(qi,qexp)- 
 			                              /*  m.8, m+n<=8 */
 			    ampoffseti);              /*  8.12[0]     */
-    
-#ifdef _LOW_ACCURACY_
-    amp>>=9;
-#endif
+
     curve[i]= MULT31_SHIFT15(curve[i],amp);
 
     while(++i<n){
@@ -314,11 +281,9 @@ void vorbis_lsp_to_curve(ogg_int32_t *curve,int n,int ln,
 
       if(map+1<ln){
 	
-#ifdef _LOW_ACCURACY_
-	nextbark=((tBnyq1<<11)/ln*(map+1))>>12;
-#else
+
 	nextbark=MULT31((map+1)*(imap>>1),tBnyq1);
-#endif
+
 	nextf=barklook[nextbark>>14]+
 	  (((nextbark&0x3fff)*
 	    (barklook[(nextbark>>14)+1]-barklook[nextbark>>14]))>>14);
@@ -377,8 +342,8 @@ int floor0_memosize(vorbis_info_floor *i){
   return info->order+1;
 }
 
-ogg_int32_t *floor0_inverse1(vorbis_dsp_state *vd,vorbis_info_floor *i,
-			     ogg_int32_t *lsp){
+int32_t *floor0_inverse1(vorbis_dsp_state *vd,vorbis_info_floor *i,
+			     int32_t *lsp){
   vorbis_info_floor0 *info=(vorbis_info_floor0 *)i;
   int j,k;
   
@@ -391,7 +356,7 @@ ogg_int32_t *floor0_inverse1(vorbis_dsp_state *vd,vorbis_info_floor *i,
     if(booknum!=-1 && booknum<info->numbooks){ /* be paranoid */
       codec_setup_info  *ci=(codec_setup_info *)vd->vi->codec_setup;
       codebook *b=ci->book_param+info->books[booknum];
-      ogg_int32_t last=0;
+      int32_t last=0;
             
       if(vorbis_book_decodev_set(b,lsp,&vd->opb,info->order,-24)==-1)goto eop;
       for(j=0;j<info->order;){
@@ -408,12 +373,12 @@ ogg_int32_t *floor0_inverse1(vorbis_dsp_state *vd,vorbis_info_floor *i,
 }
 
 int floor0_inverse2(vorbis_dsp_state *vd,vorbis_info_floor *i,
-			   ogg_int32_t *lsp,ogg_int32_t *out){
+			   int32_t *lsp,int32_t *out){
   vorbis_info_floor0 *info=(vorbis_info_floor0 *)i;
   codec_setup_info  *ci=(codec_setup_info *)vd->vi->codec_setup;
   
   if(lsp){
-    ogg_int32_t amp=lsp[info->order];
+    int32_t amp=lsp[info->order];
 
     /* take the coefficients back to a spectral envelope curve */
     vorbis_lsp_to_curve(out,ci->blocksizes[vd->W]/2,info->barkmap,

@@ -39,17 +39,17 @@ struct vorbis_dsp_state{
   vorbis_info    *vi;
   oggpack_buffer  opb;
 
-  ogg_int32_t   **work;
-  ogg_int32_t   **mdctright;
+  int32_t   **work;
+  int32_t   **mdctright;
   int             out_begin;
   int             out_end;
 
   long lW;
   long W;
 
-  ogg_int64_t granulepos;
-  ogg_int64_t sequence;
-  ogg_int64_t sample_count;
+  int64_t granulepos;
+  int64_t sequence;
+  int64_t sample_count;
 
 };
 
@@ -59,18 +59,18 @@ struct vorbis_dsp_state{
 extern vorbis_info_floor *floor0_info_unpack(vorbis_info *,oggpack_buffer *);
 extern void floor0_free_info(vorbis_info_floor *);
 extern int floor0_memosize(vorbis_info_floor *);
-extern ogg_int32_t *floor0_inverse1(struct vorbis_dsp_state *,
-				    vorbis_info_floor *,ogg_int32_t *);
+extern int32_t *floor0_inverse1(struct vorbis_dsp_state *,
+				    vorbis_info_floor *,int32_t *);
 extern int floor0_inverse2 (struct vorbis_dsp_state *,vorbis_info_floor *,
-			    ogg_int32_t *buffer,ogg_int32_t *);
+			    int32_t *buffer,int32_t *);
 
 extern vorbis_info_floor *floor1_info_unpack(vorbis_info *,oggpack_buffer *);
 extern void floor1_free_info(vorbis_info_floor *);
 extern int floor1_memosize(vorbis_info_floor *);
-extern ogg_int32_t *floor1_inverse1(struct vorbis_dsp_state *,
-				    vorbis_info_floor *,ogg_int32_t *);
+extern int32_t *floor1_inverse1(struct vorbis_dsp_state *,
+				    vorbis_info_floor *,int32_t *);
 extern int floor1_inverse2 (struct vorbis_dsp_state *,vorbis_info_floor *,
-			    ogg_int32_t *buffer,ogg_int32_t *);
+			    int32_t *buffer,int32_t *);
 
 typedef struct{
   int   order;
@@ -97,7 +97,7 @@ typedef struct{
 typedef struct {
 	floor1class *class; /* [VIF_CLASS] */
 	unsigned char *partitionclass; /* [VIF_PARTS]; 0 to 15 */
-	ogg_uint16_t *postlist; /* [VIF_POSIT+2]; first two implicit */
+	uint16_t *postlist; /* [VIF_POSIT+2]; first two implicit */
 	unsigned char *forward_index; /* [VIF_POSIT+2]; */
 	unsigned char *hineighbor; /* [VIF_POSIT]; */
 	unsigned char *loneighbor; /* [VIF_POSIT]; */
@@ -130,7 +130,7 @@ extern void res_clear_info(vorbis_info_residue *info);
 extern int res_unpack(vorbis_info_residue *info,
 		      vorbis_info *vi,oggpack_buffer *opb);
 extern int res_inverse(vorbis_dsp_state *,vorbis_info_residue *info,
-		       ogg_int32_t **in,int *nonzero,int ch);
+		       int32_t **in,int *nonzero,int ch);
 
 /* mode ************************************************************/
 typedef struct {
@@ -206,7 +206,7 @@ extern int      vorbis_dsp_restart(vorbis_dsp_state *v);
 extern int      vorbis_dsp_synthesis(vorbis_dsp_state *vd,
 				     ogg_packet *op,int decodep);
 extern int      vorbis_dsp_pcmout(vorbis_dsp_state *v,
-				  ogg_int16_t *pcm,int samples);
+				  int16_t *pcm,int samples);
 extern int      vorbis_dsp_read(vorbis_dsp_state *v,int samples);
 extern long     vorbis_packet_blocksize(vorbis_info *vi,ogg_packet *op);
 

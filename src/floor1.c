@@ -25,7 +25,7 @@
 #include "codebook.h"
 #include "misc.h"
 
-extern const ogg_int32_t FLOOR_fromdB_LOOKUP[];
+extern const int32_t FLOOR_fromdB_LOOKUP[];
 #define floor1_rangedB 140 /* floor 1 fixed at -140dB to 0dB range */
 #define VIF_POSIT 63
 
@@ -132,7 +132,7 @@ vorbis_info_floor *floor1_info_unpack (vorbis_info *vi,oggpack_buffer *opb){
   for(j=0,k=0;j<info->partitions;j++)
     count+=info->class[info->partitionclass[j]].class_dim; 
   info->postlist=
-    (ogg_uint16_t *)malloc((count+2)*sizeof(*info->postlist));
+    (uint16_t *)malloc((count+2)*sizeof(*info->postlist));
   info->forward_index=(unsigned char *)malloc((count+2)*sizeof(*info->forward_index));
   info->loneighbor=(unsigned char *)malloc(count*sizeof(*info->loneighbor));
   info->hineighbor=(unsigned char *)malloc(count*sizeof(*info->hineighbor));
@@ -201,7 +201,7 @@ static int render_point(int x0,int x1,int y0,int y1,int x){
   }
 }
 
-static void render_line(int n,int x0,int x1,int y0,int y1,ogg_int32_t *d){
+static void render_line(int n,int x0,int x1,int y0,int y1,int32_t *d){
   int dy=y1-y0;
   int adx=x1-x0;
   int ady=abs(dy);
@@ -236,8 +236,8 @@ int floor1_memosize(vorbis_info_floor *i){
 
 static int quant_look[4]={256,128,86,64};
 
-ogg_int32_t *floor1_inverse1(vorbis_dsp_state *vd,vorbis_info_floor *in,
-			     ogg_int32_t *fit_value){
+int32_t *floor1_inverse1(vorbis_dsp_state *vd,vorbis_info_floor *in,
+			     int32_t *fit_value){
   vorbis_info_floor1 *info=(vorbis_info_floor1 *)in;
   codec_setup_info   *ci=(codec_setup_info *)vd->vi->codec_setup;
   
@@ -323,7 +323,7 @@ ogg_int32_t *floor1_inverse1(vorbis_dsp_state *vd,vorbis_info_floor *in,
 }
 
 int floor1_inverse2(vorbis_dsp_state *vd,vorbis_info_floor *in,
-		    ogg_int32_t *fit_value,ogg_int32_t *out){
+		    int32_t *fit_value,int32_t *out){
   vorbis_info_floor1 *info=(vorbis_info_floor1 *)in;
 
   codec_setup_info   *ci=(codec_setup_info *)vd->vi->codec_setup;

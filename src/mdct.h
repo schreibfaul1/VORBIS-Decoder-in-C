@@ -21,8 +21,8 @@
 #include "ivorbiscodec.h"
 #include "misc.h"
 
-#define DATA_TYPE ogg_int32_t
-#define REG_TYPE  register ogg_int32_t
+#define DATA_TYPE int32_t
+#define REG_TYPE  register int32_t
 
 #ifdef _LOW_ACCURACY_
 #define cPI3_8 (0x0062)
@@ -36,11 +36,11 @@
 
 extern void mdct_backward(int n, DATA_TYPE *in);
 extern void mdct_shift_right(int n, DATA_TYPE *in, DATA_TYPE *right);
-extern void mdct_unroll_lap(int n0,int n1,
-			    int lW,int W,
-			    DATA_TYPE *in,DATA_TYPE *right,
-			    LOOKUP_T *w0,LOOKUP_T *w1,
-			    ogg_int16_t *out,
+extern void mdct_unroll_lap(int n0,int n1, int lW,int W,
+			    int32_t *in, int32_t *right,
+			    const int32_t *w0,
+				const int32_t *w1,
+			    int16_t *out,
 			    int step,
 			    int start,int end /* samples, this frame */);
 

@@ -165,7 +165,7 @@ long vorbis_packet_blocksize(vorbis_info *vi,ogg_packet *op){
 }
 
 
-static int ilog(ogg_uint32_t v){
+static int ilog(uint32_t v){
   int ret=0;
   if(v)--v;
   while(v){

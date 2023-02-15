@@ -81,7 +81,7 @@ int res_unpack(vorbis_info_residue *info,
 }
 
 int res_inverse(vorbis_dsp_state *vd,vorbis_info_residue *info,
-		ogg_int32_t **in,int *nonzero,int ch){
+		int32_t **in,int *nonzero,int ch){
   
   int i,j,k,s,used=0;
   codec_setup_info     *ci=(codec_setup_info *)vd->vi->codec_setup;
@@ -132,7 +132,7 @@ int res_inverse(vorbis_dsp_state *vd,vorbis_info_residue *info,
 		/* this can be done quickly in assembly due to the quotient
 		   always being at most six bits */
 		for(k=0;k<partitions_per_word;k++){
-		  ogg_uint32_t div=partword[j][i+k];
+		  uint32_t div=partword[j][i+k];
 		  partword[j][i+k]=temp/div;
 		  temp-=partword[j][i+k]*div;
 		}
@@ -196,7 +196,7 @@ int res_inverse(vorbis_dsp_state *vd,vorbis_info_residue *info,
 	    /* this can be done quickly in assembly due to the quotient
 	       always being at most six bits */
 	    for(k=0;k<partitions_per_word;k++){
-	      ogg_uint32_t div=partword[i+k];
+	      uint32_t div=partword[i+k];
 	      partword[i+k]=temp/div;
 	      temp-=partword[i+k]*div;
 	    }

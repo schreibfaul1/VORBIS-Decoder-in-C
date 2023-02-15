@@ -23,7 +23,7 @@
 #  define XdB(n) (n)
 #endif
 
-const ogg_int32_t FLOOR_fromdB_LOOKUP[256]={
+const int32_t FLOOR_fromdB_LOOKUP[256]={
   XdB(0x000000e5), XdB(0x000000f4), XdB(0x00000103), XdB(0x00000114),
   XdB(0x00000126), XdB(0x00000139), XdB(0x0000014e), XdB(0x00000163),
   XdB(0x0000017a), XdB(0x00000193), XdB(0x000001ad), XdB(0x000001c9),

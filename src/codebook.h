@@ -19,6 +19,7 @@
 #define _V_CODEBOOK_H_
 
 #include "ogg.h"
+#include <stdint.h>
 
 typedef struct codebook{
   long  dim;             /* codebook dimensions (elements per vector) */
@@ -34,9 +35,9 @@ typedef struct codebook{
 			    2 = packed vector of column offsets, maptype 1 
 			    3 = scalar offset into value array,  maptype 2  */
 
-  ogg_int32_t q_min;  
+  int32_t q_min;
   int         q_minp;  
-  ogg_int32_t q_del;
+  int32_t q_del;
   int         q_delp;
   int         q_seq;
   int         q_bits;
@@ -49,13 +50,13 @@ extern void vorbis_book_clear(codebook *b);
 extern int  vorbis_book_unpack(oggpack_buffer *b,codebook *c);
 
 extern long vorbis_book_decode(codebook *book, oggpack_buffer *b);
-extern long vorbis_book_decodevs_add(codebook *book, ogg_int32_t *a, 
+extern long vorbis_book_decodevs_add(codebook *book, int32_t *a,
 				     oggpack_buffer *b,int n,int point);
-extern long vorbis_book_decodev_set(codebook *book, ogg_int32_t *a, 
+extern long vorbis_book_decodev_set(codebook *book, int32_t *a,
 				    oggpack_buffer *b,int n,int point);
-extern long vorbis_book_decodev_add(codebook *book, ogg_int32_t *a, 
+extern long vorbis_book_decodev_add(codebook *book, int32_t *a,
 				    oggpack_buffer *b,int n,int point);
-extern long vorbis_book_decodevv_add(codebook *book, ogg_int32_t **a,
+extern long vorbis_book_decodevv_add(codebook *book, int32_t **a,
 				     long off,int ch, 
 				    oggpack_buffer *b,int n,int point);
 

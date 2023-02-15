@@ -19,6 +19,7 @@
 #define _V_RANDOM_H_
 #include "ivorbiscodec.h"
 #include "os_types.h"
+#include <stdint.h>
 
 #define _V_WIDE_MATH
 
@@ -48,8 +49,8 @@ static inline int32_t MULT31(int32_t x, int32_t y) {
 
 static inline int32_t MULT31_SHIFT15(int32_t x, int32_t y) {
   union magic magic;
-  magic.whole  = (ogg_int64_t)x * y;
-  return ((ogg_uint32_t)(magic.halves.lo)>>15) | ((magic.halves.hi)<<17);
+  magic.whole  = (int64_t)x * y;
+  return ((uint32_t)(magic.halves.lo)>>15) | ((magic.halves.hi)<<17);
 }
 #endif
 

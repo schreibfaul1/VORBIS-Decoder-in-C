@@ -110,13 +110,13 @@ int mapping_inverse(vorbis_dsp_state *vd,vorbis_info_mapping *info){
   int                   i,j;
   long                  n=ci->blocksizes[vd->W];
 
-  ogg_int32_t **pcmbundle=
+  int32_t **pcmbundle=
     alloca(sizeof(*pcmbundle)*vi->channels);
   int          *zerobundle=
     alloca(sizeof(*zerobundle)*vi->channels);
   int          *nonzero=
     alloca(sizeof(*nonzero)*vi->channels);
-  ogg_int32_t **floormemo=
+  int32_t **floormemo=
     alloca(sizeof(*floormemo)*vi->channels);
   
   /* recover the spectral envelope; store it in the PCM vector for now */
@@ -178,12 +178,12 @@ int mapping_inverse(vorbis_dsp_state *vd,vorbis_info_mapping *info){
 
   /* channel coupling */
   for(i=info->coupling_steps-1;i>=0;i--){
-    ogg_int32_t *pcmM=vd->work[info->coupling[i].mag];
-    ogg_int32_t *pcmA=vd->work[info->coupling[i].ang];
+    int32_t *pcmM=vd->work[info->coupling[i].mag];
+    int32_t *pcmA=vd->work[info->coupling[i].ang];
     
     for(j=0;j<n/2;j++){
-      ogg_int32_t mag=pcmM[j];
-      ogg_int32_t ang=pcmA[j];
+      int32_t mag=pcmM[j];
+      int32_t ang=pcmA[j];
       
       if(mag>0)
 	if(ang>0){
@@ -209,7 +209,7 @@ int mapping_inverse(vorbis_dsp_state *vd,vorbis_info_mapping *info){
 
   /* compute and apply spectral envelope */
   for(i=0;i<vi->channels;i++){
-    ogg_int32_t *pcm=vd->work[i];
+    int32_t *pcm=vd->work[i];
     int submap=0;
     int floorno;
 

@@ -22,6 +22,7 @@ extern "C" {
 #endif
 
 #include "os_types.h"
+#include <stdint.h>
 
 typedef struct ogg_buffer_state{
   struct ogg_buffer    *unused_buffers;
@@ -99,22 +100,22 @@ typedef struct ogg_stream_state {
                               of a logical bitstream */
   long           serialno;
   long           pageno;
-  ogg_int64_t    packetno; /* sequence number for decode; the framing
+  int64_t    packetno; /* sequence number for decode; the framing
                               knows where there's a hole in the data,
                               but we need coupling so that the codec
                               (which is in a seperate abstraction
                               layer) also knows about the gap */
-  ogg_int64_t    granulepos;
+  int64_t    granulepos;
 
   int            lacing_fill;
-  ogg_uint32_t   body_fill;
+  uint32_t   body_fill;
 
   /* decode-side state data */
   int            holeflag;
   int            spanflag;
   int            clearflag;
   int            laceptr;
-  ogg_uint32_t   body_fill_next;
+  uint32_t   body_fill_next;
   
 } ogg_stream_state;
 
@@ -123,8 +124,8 @@ typedef struct {
   long           bytes;
   long           b_o_s;
   long           e_o_s;
-  ogg_int64_t    granulepos;
-  ogg_int64_t    packetno;     /* sequence number for decode; the framing
+  int64_t    granulepos;
+  int64_t    packetno;     /* sequence number for decode; the framing
                                   knows where there's a hole in the data,
                                   but we need coupling so that the codec
                                   (which is in a seperate abstraction
@@ -176,9 +177,9 @@ extern int      ogg_page_version(ogg_page *og);
 extern int      ogg_page_continued(ogg_page *og);
 extern int      ogg_page_bos(ogg_page *og);
 extern int      ogg_page_eos(ogg_page *og);
-extern ogg_int64_t  ogg_page_granulepos(ogg_page *og);
-extern ogg_uint32_t ogg_page_serialno(ogg_page *og);
-extern ogg_uint32_t ogg_page_pageno(ogg_page *og);
+extern int64_t  ogg_page_granulepos(ogg_page *og);
+extern uint32_t ogg_page_serialno(ogg_page *og);
+extern uint32_t ogg_page_pageno(ogg_page *og);
 extern int      ogg_page_packets(ogg_page *og);
 extern int      ogg_page_getbuffer(ogg_page *og, unsigned char **buffer);
 

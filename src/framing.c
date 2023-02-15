@@ -364,7 +364,7 @@ static int oggbyte_init(oggbyte_buffer *b,ogg_reference *or){
     return -1;
 }
 
-static void oggbyte_set4(oggbyte_buffer *b,ogg_uint32_t val,int pos){
+static void oggbyte_set4(oggbyte_buffer *b,uint32_t val,int pos){
   int i;
   _positionB(b,pos);
   for(i=0;i<4;i++){
@@ -381,8 +381,8 @@ static unsigned char oggbyte_read1(oggbyte_buffer *b,int pos){
   return b->ptr[pos-b->pos];
 }
 
-static ogg_uint32_t oggbyte_read4(oggbyte_buffer *b,int pos){
-  ogg_uint32_t ret;
+static uint32_t oggbyte_read4(oggbyte_buffer *b,int pos){
+  uint32_t ret;
   _positionB(b,pos);
   _positionF(b,pos);
   ret=b->ptr[pos-b->pos];
@@ -395,8 +395,8 @@ static ogg_uint32_t oggbyte_read4(oggbyte_buffer *b,int pos){
   return ret;
 }
 
-static ogg_int64_t oggbyte_read8(oggbyte_buffer *b,int pos){
-  ogg_int64_t ret;
+static int64_t oggbyte_read8(oggbyte_buffer *b,int pos){
+  int64_t ret;
   unsigned char t[7];
   int i;
   _positionB(b,pos);
@@ -440,19 +440,19 @@ int ogg_page_eos(ogg_page *og){
   return oggbyte_read1(&ob,5)&0x04;
 }
 
-ogg_int64_t ogg_page_granulepos(ogg_page *og){
+int64_t ogg_page_granulepos(ogg_page *og){
   oggbyte_buffer ob;
   if(oggbyte_init(&ob,og->header))return -1;
   return oggbyte_read8(&ob,6);
 }
 
-ogg_uint32_t ogg_page_serialno(ogg_page *og){
+uint32_t ogg_page_serialno(ogg_page *og){
   oggbyte_buffer ob;
   if(oggbyte_init(&ob,og->header)) return 0xffffffffUL;
   return oggbyte_read4(&ob,14);
 }
  
-ogg_uint32_t ogg_page_pageno(ogg_page *og){
+uint32_t ogg_page_pageno(ogg_page *og){
   oggbyte_buffer ob;
   if(oggbyte_init(&ob,og->header))return 0xffffffffUL;
   return oggbyte_read4(&ob,18);
@@ -491,7 +491,7 @@ int ogg_page_packets(ogg_page *og){
 /* Static CRC calculation table.  See older code in CVS for dead
    run-time initialization code. */
 
-static ogg_uint32_t crc_lookup[256]={
+const uint32_t crc_lookup[256]={
   0x00000000,0x04c11db7,0x09823b6e,0x0d4326d9,
   0x130476dc,0x17c56b6b,0x1a864db2,0x1e475005,
   0x2608edb8,0x22c9f00f,0x2f8ad6d6,0x2b4bcb61,
@@ -627,8 +627,8 @@ int ogg_sync_wrote(ogg_sync_state *oy, long bytes){
   return OGG_SUCCESS;
 }
 
-static ogg_uint32_t _checksum(ogg_reference *or, int bytes){
-  ogg_uint32_t crc_reg=0;
+static uint32_t _checksum(ogg_reference *or, int bytes){
+  uint32_t crc_reg=0;
   int j,post;
 
   while(or){
@@ -688,7 +688,7 @@ long ogg_sync_pageseek(ogg_sync_state *oy,ogg_page *og){
   /* we have what appears to be a complete page; last test: verify
      checksum */
   {
-    ogg_uint32_t chksum=oggbyte_read4(&page,22);
+    uint32_t chksum=oggbyte_read4(&page,22);
     oggbyte_set4(&page,0,22);
 
     /* Compare checksums; memory continues to be common access */

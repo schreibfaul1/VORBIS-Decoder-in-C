@@ -421,13 +421,12 @@ void mdct_shift_right(int n, DATA_TYPE *in, DATA_TYPE *right){
     right[i]=in[i<<1];
 }
 
-void mdct_unroll_lap(int n0,int n1,
-		     int lW,int W,
-		     DATA_TYPE *in,
-		     DATA_TYPE *right,
-		     LOOKUP_T *w0,
-		     LOOKUP_T *w1,
-		     ogg_int16_t *out,
+void mdct_unroll_lap(int n0,int n1, int lW,int W,
+		     int *in,
+		     int *right,
+		     const int *w0,
+		     const int *w1,
+		     short int *out,
 		     int step,
 		     int start, /* samples, this frame */
 		     int end    /* samples, this frame */){

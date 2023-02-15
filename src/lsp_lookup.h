@@ -64,7 +64,7 @@ static const long INVSQ_LOOKUP_IDel[64]={
 #define COS_LOOKUP_I_SHIFT 9
 #define COS_LOOKUP_I_MASK 511
 #define COS_LOOKUP_I_SZ 128
-static const ogg_int32_t COS_LOOKUP_I[COS_LOOKUP_I_SZ+1]={
+static const int32_t COS_LOOKUP_I[COS_LOOKUP_I_SZ+1]={
 	   16384,   16379,   16364,   16340,
 	   16305,   16261,   16207,   16143,
 	   16069,   15986,   15893,   15791,
