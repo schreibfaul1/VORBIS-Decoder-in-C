@@ -463,13 +463,13 @@ static int _make_decode_ready(OggVorbis_File *vf){
       if(vf->offsets[i+1]>=vf->offset)break;
     if(i==vf->links)return -1;
     i=_set_link_number_preserve_pos(vf,i);
-    if(i)return i;
+    if(i)return i; // @suppress("No break at end of case")
     /* fall through */
   case LINKSET:
     vf->vd=vorbis_dsp_create(&vf->vi);
     vf->ready_state=INITSET;
     vf->bittrack=0;
-    vf->samptrack=0;
+    vf->samptrack=0; // @suppress("No break at end of case")
   case INITSET:
     return 0;
   default:
@@ -789,15 +789,12 @@ int ov_open_callbacks(void *f,OggVorbis_File *vf,char *initial,long ibytes,
   return _ov_open2(vf);
 }
 
-int ov_open(FILE *f,OggVorbis_File *vf,char *initial,long ibytes){
-  ov_callbacks callbacks = {
-    (size_t (*)(void *, size_t, size_t, void *))  fread,
-    (int (*)(void *, ogg_int64_t, int))              _fseek64_wrap,
-    (int (*)(void *))                             fclose,
-    (long (*)(void *))                            ftell
-  };
+int ov_open(FILE *f, OggVorbis_File *vf, char *initial, long ibytes) {
+	ov_callbacks callbacks = { (size_t (*)(void*, size_t, size_t, void*)) fread,
+			(int (*)(void*, ogg_int64_t, int)) _fseek64_wrap,
+			(int (*)(void*)) fclose, (long (*)(void*)) ftell };
 
-  return ov_open_callbacks((void *)f, vf, initial, ibytes, callbacks);
+	return ov_open_callbacks((void*) f, vf, initial, ibytes, callbacks);
 }
   
 /* Only partially open the vorbis file; test for Vorbisness, and load

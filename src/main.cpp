@@ -11,8 +11,8 @@ char pcmout[4096];
 int main() {
 	OggVorbis_File vf;
 	int eof = 0;
-	int current_section;
-	char buff[100];
+	// int current_section;
+	// char buff[100];
 
 	FILE *fptrIn = NULL;
 	fptrIn = fopen("in.ogg", "r");

@@ -92,17 +92,19 @@ typedef struct{
   unsigned char  class_subbook[8]; /* [VIF_CLASS][subs] */
 } floor1class;  
 
-typedef struct{
-  floor1class  *class;          /* [VIF_CLASS] */
-  char         *partitionclass; /* [VIF_PARTS]; 0 to 15 */
-  ogg_uint16_t *postlist;       /* [VIF_POSIT+2]; first two implicit */ 
-  char         *forward_index;  /* [VIF_POSIT+2]; */
-  char         *hineighbor;     /* [VIF_POSIT]; */
-  char         *loneighbor;     /* [VIF_POSIT]; */
 
-  int          partitions;    /* 0 to 31 */
-  int          posts;
-  int          mult;          /* 1 2 3 or 4 */ 
+
+typedef struct {
+	floor1class *class; /* [VIF_CLASS] */
+	unsigned char *partitionclass; /* [VIF_PARTS]; 0 to 15 */
+	ogg_uint16_t *postlist; /* [VIF_POSIT+2]; first two implicit */
+	unsigned char *forward_index; /* [VIF_POSIT+2]; */
+	unsigned char *hineighbor; /* [VIF_POSIT]; */
+	unsigned char *loneighbor; /* [VIF_POSIT]; */
+
+	int partitions; /* 0 to 31 */
+	int posts;
+	int mult; /* 1 2 3 or 4 */
 
 } vorbis_info_floor1;
 

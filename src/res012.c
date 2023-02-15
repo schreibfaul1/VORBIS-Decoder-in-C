@@ -217,7 +217,6 @@ int res_inverse(vorbis_dsp_state *vd,vorbis_info_residue *info,
       } 
     }
   }
- errout:
  eopbreak:
   
   return 0;

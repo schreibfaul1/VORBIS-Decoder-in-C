@@ -22,10 +22,6 @@ static void **pointers=NULL;
 static long *insertlist=NULL; /* We can't embed this in the pointer list;
 			  a pointer can have any value... */
 
-static char **files=NULL;
-static long *file_bytes=NULL;
-static int  filecount=0;
-
 static int ptop=0;
 static int palloced=0;
 static int pinsert=0;
@@ -64,55 +60,6 @@ static void *_insert(void *ptr,long bytes,char *file,long line){
   else
     pinsert=insertlist[pinsert];
 
-#ifdef _VDBG_GRAPHFILE
-  {
-    FILE *out;
-    struct timeval tv;
-    static struct timezone tz;
-    int i;
-    char buffer[80];
-    gettimeofday(&tv,&tz);
-
-    for(i=0;i<filecount;i++)
-      if(!strcmp(file,files[i]))break;
-
-    if(i==filecount){
-      filecount++;
-      if(!files){
-	files=malloc(filecount*sizeof(*files));
-	file_bytes=malloc(filecount*sizeof(*file_bytes));
-      }else{
-	files=realloc(files,filecount*sizeof(*files));
-	file_bytes=realloc(file_bytes,filecount*sizeof(*file_bytes));
-      }
-      files[i]=strdup(file);
-      file_bytes[i]=0;
-    }
-
-    file_bytes[i]+=bytes-HEAD_ALIGN;
-
-    if(start_time==-1)start_time=(tv.tv_sec*1000)+(tv.tv_usec/1000);
-
-    snprintf(buffer,80,"%s",file);
-    if(strchr(buffer,'.'))strchr(buffer,'.')[0]=0;
-    strcat(buffer,_VDBG_GRAPHFILE);
-    out=fopen(buffer,"a");
-    fprintf(out,"%ld, %ld\n",-start_time+(tv.tv_sec*1000)+(tv.tv_usec/1000),
-	    file_bytes[i]-(bytes-HEAD_ALIGN));
-    fprintf(out,"%ld, %ld # FILE %s LINE %ld\n",
-	    -start_time+(tv.tv_sec*1000)+(tv.tv_usec/1000),
-	    file_bytes[i],file,line);
-    fclose(out);
-
-    out=fopen("total"_VDBG_GRAPHFILE,"a");
-    fprintf(out,"%ld, %ld\n",-start_time+(tv.tv_sec*1000)+(tv.tv_usec/1000),
-	    global_bytes);
-    fprintf(out,"%ld, %ld\n",-start_time+(tv.tv_sec*1000)+(tv.tv_usec/1000),
-	    global_bytes+(bytes-HEAD_ALIGN));
-    fclose(out);
-  }
-#endif
-
   global_bytes+=(bytes-HEAD_ALIGN);
 
   return(ptr+HEAD_ALIGN);
@@ -120,41 +67,6 @@ static void *_insert(void *ptr,long bytes,char *file,long line){
 
 static void _ripremove(void *ptr){
   int insert;
-
-#ifdef _VDBG_GRAPHFILE
-  {
-    FILE *out=fopen("total"_VDBG_GRAPHFILE,"a");
-    struct timeval tv;
-    static struct timezone tz;
-    char buffer[80];
-    char *file =((head *)ptr)->file;
-    long bytes =((head *)ptr)->bytes;
-    int i;
-
-    gettimeofday(&tv,&tz);
-    fprintf(out,"%ld, %ld\n",-start_time+(tv.tv_sec*1000)+(tv.tv_usec/1000),
-	    global_bytes);
-    fprintf(out,"%ld, %ld\n",-start_time+(tv.tv_sec*1000)+(tv.tv_usec/1000),
-	    global_bytes-((head *)ptr)->bytes);
-    fclose(out);
-
-    for(i=0;i<filecount;i++)
-      if(!strcmp(file,files[i]))break;
-
-    snprintf(buffer,80,"%s",file);
-    if(strchr(buffer,'.'))strchr(buffer,'.')[0]=0;
-    strcat(buffer,_VDBG_GRAPHFILE);
-    out=fopen(buffer,"a");
-    fprintf(out,"%ld, %ld\n",-start_time+(tv.tv_sec*1000)+(tv.tv_usec/1000),
-	    file_bytes[i]);
-    fprintf(out,"%ld, %ld\n",-start_time+(tv.tv_sec*1000)+(tv.tv_usec/1000),
-	    file_bytes[i]-bytes);
-    fclose(out);
-
-    file_bytes[i]-=bytes;
-
-  }
-#endif
 
   global_bytes-=((head *)ptr)->bytes;
 

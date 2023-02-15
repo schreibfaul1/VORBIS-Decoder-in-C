@@ -17,6 +17,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include <math.h>
 #include "ogg.h"
 #include "ivorbiscodec.h"
@@ -53,34 +54,42 @@ static int ilog(unsigned int v){
   return(ret);
 }
 
-static void vorbis_mergesort(char *index,ogg_uint16_t *vals,ogg_uint16_t n){
-  ogg_uint16_t i,j;
-  char *temp,*A=index,*B=malloc(n*sizeof(*B));
+static void vorbis_mergesort(unsigned char *index, uint16_t *vals, uint16_t n) {
+	uint16_t i, j;
+	unsigned char *temp;
+	unsigned char *A = index;
+	unsigned char *B = malloc(n * sizeof(*B));
 
-  for(i=1;i<n;i<<=1){
-    for(j=0;j+i<n;){
-      int k1=j;
-      int mid=j+i;
-      int k2=mid;
-      int end=(j+i*2<n?j+i*2:n);
-      while(k1<mid && k2<end){
-	if(vals[A[k1]]<vals[A[k2]])
-	  B[j++]=A[k1++];
-	else
-	  B[j++]=A[k2++];
-      }
-      while(k1<mid) B[j++]=A[k1++];
-      while(k2<end) B[j++]=A[k2++];
-    }
-    for(;j<n;j++)B[j]=A[j];
-    temp=A;A=B;B=temp;
-  }
- 
-  if(B==index){
-    for(j=0;j<n;j++)B[j]=A[j];
-    free(A);
-  }else
-    free(B);
+	for (i = 1; i < n; i <<= 1) {
+		for (j = 0; j + i < n;) {
+			uint16_t k1 = j;
+			uint16_t mid = j + i;
+			uint16_t k2 = mid;
+			int end = (j + i * 2 < n ? j + i * 2 : n);
+			while (k1 < mid && k2 < end) {
+				if (vals[A[k1]] < vals[A[k2]])
+					B[j++] = A[k1++];
+				else
+					B[j++] = A[k2++];
+			}
+			while (k1 < mid)
+				B[j++] = A[k1++];
+			while (k2 < end)
+				B[j++] = A[k2++];
+		}
+		for (; j < n; j++)
+			B[j] = A[j];
+		temp = A;
+		A = B;
+		B = temp;
+	}
+
+	if (B == index) {
+		for (j = 0; j < n; j++)
+			B[j] = A[j];
+		free(A);
+	} else
+		free(B);
 }
 
 
@@ -91,8 +100,7 @@ vorbis_info_floor *floor1_info_unpack (vorbis_info *vi,oggpack_buffer *opb){
   vorbis_info_floor1 *info=(vorbis_info_floor1 *)calloc(1,sizeof(*info));
   /* read partitions */
   info->partitions=oggpack_read(opb,5); /* only 0 to 31 legal */
-  info->partitionclass=
-    (char *)malloc(info->partitions*sizeof(*info->partitionclass));
+  info->partitionclass=(unsigned char *)malloc(info->partitions*sizeof(*info->partitionclass));
   for(j=0;j<info->partitions;j++){
     info->partitionclass[j]=oggpack_read(opb,4); /* only 0 to 15 legal */
     if(maxclass<info->partitionclass[j])maxclass=info->partitionclass[j];
@@ -125,12 +133,9 @@ vorbis_info_floor *floor1_info_unpack (vorbis_info *vi,oggpack_buffer *opb){
     count+=info->class[info->partitionclass[j]].class_dim; 
   info->postlist=
     (ogg_uint16_t *)malloc((count+2)*sizeof(*info->postlist));
-  info->forward_index=
-    (char *)malloc((count+2)*sizeof(*info->forward_index));
-  info->loneighbor=
-    (char *)malloc(count*sizeof(*info->loneighbor));
-  info->hineighbor=
-    (char *)malloc(count*sizeof(*info->hineighbor));
+  info->forward_index=(unsigned char *)malloc((count+2)*sizeof(*info->forward_index));
+  info->loneighbor=(unsigned char *)malloc(count*sizeof(*info->loneighbor));
+  info->hineighbor=(unsigned char *)malloc(count*sizeof(*info->hineighbor));
 
   count=0;
   for(j=0,k=0;j<info->partitions;j++){

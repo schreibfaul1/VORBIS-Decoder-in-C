@@ -38,6 +38,31 @@
 #include "mdct.h"
 #include "mdct_lookup.h"
 
+static inline void XPROD31(int32_t  a, int32_t  b,
+			   int32_t  t, int32_t  v,
+			   int32_t *x, int32_t *y)
+{
+  *x = MULT31(a, t) + MULT31(b, v);
+  *y = MULT31(b, t) - MULT31(a, v);
+}
+
+static inline void XNPROD31(int32_t  a, int32_t  b,
+			    int32_t  t, int32_t  v,
+			    int32_t *x, int32_t *y)
+{
+  *x = MULT31(a, t) - MULT31(b, v);
+  *y = MULT31(b, t) + MULT31(a, v);
+}
+
+static inline int32_t CLIP_TO_15(int32_t x) {
+  int ret=x;
+  ret-= ((x<=32767)-1)&(x-32767);
+  ret-= ((x>=-32768)-1)&(x+32768);
+  return(ret);
+}
+
+
+
 STIN void presymmetry(DATA_TYPE *in,int n2,int step){
   DATA_TYPE *aX;
   DATA_TYPE *bX;
@@ -98,7 +123,6 @@ STIN void mdct_butterfly_8(DATA_TYPE *x){
 	   x[5] = r6   - r2;
            x[6] = r4   + r0;
 	   x[7] = r6   + r2;
-	   MB();
 }
 
 /* 16 point butterfly (in place, 4 register) */
@@ -114,7 +138,6 @@ STIN void mdct_butterfly_16(DATA_TYPE *x){
 	   x[ 1] = MULT31((r2 + r3) , cPI2_8);
 	   x[ 2] = MULT31((r0 + r1) , cPI2_8);
 	   x[ 3] = MULT31((r3 - r2) , cPI2_8);
-	   MB();
 
 	   r2 = x[12] - x[13]; x[12] += x[13];
 	   r3 = x[14] - x[15]; x[14] += x[15];
@@ -122,7 +145,6 @@ STIN void mdct_butterfly_16(DATA_TYPE *x){
 	   r1 = x[ 7] - x[ 6]; x[15]  = x[ 7] + x[ 6];
 	   x[ 4] = r2; x[ 5] = r1; 
 	   x[ 6] = r3; x[ 7] = r0;
-	   MB();
 
 	   mdct_butterfly_8(x);
 	   mdct_butterfly_8(x+8);
@@ -139,7 +161,6 @@ STIN void mdct_butterfly_32(DATA_TYPE *x){
 	   r3 = x[ 3] - x[ 2]; x[19]  = x[ 3] + x[ 2];
 	   XNPROD31( r0, r1, cPI3_8, cPI1_8, &x[ 0], &x[ 2] );
 	   XPROD31 ( r2, r3, cPI1_8, cPI3_8, &x[ 1], &x[ 3] );
-	   MB();
 
 	   r0 = x[20] - x[21]; x[20] += x[21];
 	   r1 = x[22] - x[23]; x[22] += x[23];
@@ -149,7 +170,6 @@ STIN void mdct_butterfly_32(DATA_TYPE *x){
 	   x[ 5] = MULT31((r3 + r2) , cPI2_8);
 	   x[ 6] = MULT31((r0 + r1) , cPI2_8);
 	   x[ 7] = MULT31((r3 - r2) , cPI2_8);
-	   MB();
 
 	   r0 = x[24] - x[25]; x[24] += x[25];           
 	   r1 = x[26] - x[27]; x[26] += x[27];
@@ -157,7 +177,6 @@ STIN void mdct_butterfly_32(DATA_TYPE *x){
 	   r3 = x[11] - x[10]; x[27]  = x[11] + x[10];
 	   XNPROD31( r0, r1, cPI1_8, cPI3_8, &x[ 8], &x[10] );
 	   XPROD31 ( r2, r3, cPI3_8, cPI1_8, &x[ 9], &x[11] );
-	   MB();
 
 	   r0 = x[28] - x[29]; x[28] += x[29];           
 	   r1 = x[30] - x[31]; x[30] += x[31];
@@ -165,7 +184,6 @@ STIN void mdct_butterfly_32(DATA_TYPE *x){
 	   r3 = x[15] - x[14]; x[31]  = x[15] + x[14];
 	   x[12] = r0; x[13] = r3; 
 	   x[14] = r1; x[15] = r2;
-	   MB();
 
 	   mdct_butterfly_16(x);
 	   mdct_butterfly_16(x+16);
