@@ -46,16 +46,8 @@ static inline int32_t vorbis_invsqlook_i(long a,long e){
   return(val>>e);
 }
 
-/* interpolated lookup based fromdB function, domain -140dB to 0dB only */
-/* a is in n.12 format */
 
-static inline int32_t vorbis_fromdBlook_i(long a){
-  if(a>0) return 0x7fffffff;
-  if(a<(-140<<12)) return 0;
-  return FLOOR_fromdB_LOOKUP[((a+(140<<12))*467)>>20];
-}
-
-
+//-------------------------------------------------------------------------------------------------
 /* interpolated lookup based cos function, domain 0 to PI only */
 /* a is in 0.16 format, where 0==0, 2^^16-1==PI, return 0.14 */
 static inline int32_t vorbis_coslook_i(long a){

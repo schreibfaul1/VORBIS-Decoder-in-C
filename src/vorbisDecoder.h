@@ -17,6 +17,8 @@
 #define VI_RESB 3
 #define VI_MAPB 1
 
+#define XdB(n) (n)
+
 #define _lookspan()   while(!end){\
                         head=head->next;\
                         if(!head) return -1;\
@@ -231,8 +233,8 @@ int vorbis_dsp_pcmout(vorbis_dsp_state *v, int16_t *pcm, int samples);
 int vorbis_dsp_read(vorbis_dsp_state *v, int s);
 int32_t vorbis_packet_blocksize(vorbis_info *vi, ogg_packet *op);
 int vorbis_dsp_synthesis(vorbis_dsp_state *vd, ogg_packet *op, int decodep);
-
-
+int32_t vorbis_fromdBlook_i(long a);
+void render_line(int n, int x0, int x1, int y0, int y1, int32_t *d);
 
 
 
