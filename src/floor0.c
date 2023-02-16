@@ -129,8 +129,6 @@ void vorbis_lsp_to_curve(int32_t *curve,int n,int ln,
   int ampoffseti=ampoffset*4096;
   int ampi=amp;
   int32_t *ilsp=(int32_t *)alloca(m*sizeof(*ilsp));
-
-  // ogg_uint32_t inyq= (1UL<<31) / toBARK(nyq);
   uint32_t imap= (1UL<<31) / ln;
   uint32_t tBnyq1 = toBARK(nyq)<<1;
 
@@ -142,22 +140,14 @@ void vorbis_lsp_to_curve(int32_t *curve,int n,int ln,
   int fdy=nyq-fbase*fdx;
   int map=0;
 
-#ifdef _LOW_ACCURACY_
-  ogg_uint32_t nextbark=((tBnyq1<<11)/ln)>>12;
-#else
   uint32_t nextbark=MULT31(imap>>1,tBnyq1);
-#endif
+
   int nextf=barklook[nextbark>>14]+(((nextbark&0x3fff)*
 	    (barklook[(nextbark>>14)+1]-barklook[nextbark>>14]))>>14);
 
   /* lsp is in 8.24, range 0 to PI; coslook wants it in .16 0 to 1*/
   for(i=0;i<m;i++){
-#ifndef _LOW_ACCURACY_
     int32_t val=MULT32(lsp[i],0x517cc2);
-#else
-    ogg_int32_t val=((lsp[i]>>10)*0x517d)>>14;
-#endif
-
     /* safeguard against a malicious stream */
     if(val<0 || (val>>COS_LOOKUP_I_SHIFT)>=COS_LOOKUP_I_SZ){
       memset(curve,0,sizeof(*curve)*n);

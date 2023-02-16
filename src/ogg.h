@@ -142,11 +142,11 @@ typedef struct {
 /* Ogg BITSTREAM PRIMITIVES: bitstream ************************/
 
 extern void  oggpack_readinit(oggpack_buffer *b,ogg_reference *r);
-extern long  oggpack_look(oggpack_buffer *b,int bits);
+extern int32_t  oggpack_look(oggpack_buffer *b,int bits);
 extern void  oggpack_adv(oggpack_buffer *b,int bits);
-extern long  oggpack_read(oggpack_buffer *b,int bits);
-extern long  oggpack_bytes(oggpack_buffer *b);
-extern long  oggpack_bits(oggpack_buffer *b);
+extern int32_t  oggpack_read(oggpack_buffer *b,int bits);
+extern int32_t  oggpack_bytes(oggpack_buffer *b);
+extern int32_t  oggpack_bits(oggpack_buffer *b);
 extern int   oggpack_eop(oggpack_buffer *b);
 
 /* Ogg BITSTREAM PRIMITIVES: decoding **************************/
