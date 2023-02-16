@@ -19,7 +19,6 @@
 #include "ogg.h"
 #include "mdct.h"
 #include "ivorbiscodec.h"
-#include "codec_internal.h"
 #include "misc.h"
 #include "window_lookup.h"
 

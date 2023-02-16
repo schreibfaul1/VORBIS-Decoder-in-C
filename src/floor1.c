@@ -21,7 +21,6 @@
 #include <math.h>
 #include "ogg.h"
 #include "ivorbiscodec.h"
-#include "codec_internal.h"
 #include "vorbisDecoder.h"
 #include "misc.h"
 
@@ -34,7 +33,7 @@ extern const int32_t FLOOR_fromdB_LOOKUP[];
 void floor1_free_info(vorbis_info_floor *i){
   vorbis_info_floor1 *info=(vorbis_info_floor1 *)i;
   if(info){
-    if(info->class)free(info->class);
+    if(info->_class)free(info->_class);
     if(info->partitionclass)free(info->partitionclass);
     if(info->postlist)free(info->postlist);
     if(info->forward_index)free(info->forward_index);
@@ -107,21 +106,21 @@ vorbis_info_floor *floor1_info_unpack (vorbis_info *vi,oggpack_buffer *opb){
   }
 
   /* read partition classes */
-  info->class=
-    (floor1class *)malloc((maxclass+1)*sizeof(*info->class));
+  info->_class=
+    (floor1class *)malloc((maxclass+1)*sizeof(*info->_class));
   for(j=0;j<maxclass+1;j++){
-    info->class[j].class_dim=oggpack_read(opb,3)+1; /* 1 to 8 */
-    info->class[j].class_subs=oggpack_read(opb,2); /* 0,1,2,3 bits */
+    info->_class[j].class_dim=oggpack_read(opb,3)+1; /* 1 to 8 */
+    info->_class[j].class_subs=oggpack_read(opb,2); /* 0,1,2,3 bits */
     if(oggpack_eop(opb)<0) goto err_out;
-    if(info->class[j].class_subs)
-      info->class[j].class_book=oggpack_read(opb,8);
+    if(info->_class[j].class_subs)
+      info->_class[j].class_book=oggpack_read(opb,8);
     else
-      info->class[j].class_book=0;
-    if(info->class[j].class_book>=ci->books)goto err_out;
-    for(k=0;k<(1<<info->class[j].class_subs);k++){
-      info->class[j].class_subbook[k]=oggpack_read(opb,8)-1;
-      if(info->class[j].class_subbook[k]>=ci->books &&
-	 info->class[j].class_subbook[k]!=0xff)goto err_out;
+      info->_class[j].class_book=0;
+    if(info->_class[j].class_book>=ci->books)goto err_out;
+    for(k=0;k<(1<<info->_class[j].class_subs);k++){
+      info->_class[j].class_subbook[k]=oggpack_read(opb,8)-1;
+      if(info->_class[j].class_subbook[k]>=ci->books &&
+	 info->_class[j].class_subbook[k]!=0xff)goto err_out;
     }
   }
 
@@ -130,7 +129,7 @@ vorbis_info_floor *floor1_info_unpack (vorbis_info *vi,oggpack_buffer *opb){
   rangebits=oggpack_read(opb,4);
 
   for(j=0,k=0;j<info->partitions;j++)
-    count+=info->class[info->partitionclass[j]].class_dim; 
+    count+=info->_class[info->partitionclass[j]].class_dim;
   info->postlist=
     (uint16_t *)malloc((count+2)*sizeof(*info->postlist));
   info->forward_index=(unsigned char *)malloc((count+2)*sizeof(*info->forward_index));
@@ -139,7 +138,7 @@ vorbis_info_floor *floor1_info_unpack (vorbis_info *vi,oggpack_buffer *opb){
 
   count=0;
   for(j=0,k=0;j<info->partitions;j++){
-    count+=info->class[info->partitionclass[j]].class_dim; 
+    count+=info->_class[info->partitionclass[j]].class_dim;
     if(count>VIF_POSIT)goto err_out;
     for(;k<count;k++){
       int t=info->postlist[k+2]=oggpack_read(opb,rangebits);
@@ -254,20 +253,20 @@ int32_t *floor1_inverse1(vorbis_dsp_state *vd,vorbis_info_floor *in,
     /* partition by partition */
     for(i=0,j=2;i<info->partitions;i++){
       int classv=info->partitionclass[i];
-      int cdim=info->class[classv].class_dim;
-      int csubbits=info->class[classv].class_subs;
+      int cdim=info->_class[classv].class_dim;
+      int csubbits=info->_class[classv].class_subs;
       int csub=1<<csubbits;
       int cval=0;
 
       /* decode the partition's first stage cascade value */
       if(csubbits){
-	cval=vorbis_book_decode(books+info->class[classv].class_book,&vd->opb);
+	cval=vorbis_book_decode(books+info->_class[classv].class_book,&vd->opb);
 
 	if(cval==-1)goto eop;
       }
 
       for(k=0;k<cdim;k++){
-	int book=info->class[classv].class_subbook[cval&(csub-1)];
+	int book=info->_class[classv].class_subbook[cval&(csub-1)];
 	cval>>=csubbits;
 	if(book!=0xff){
 	  if((fit_value[j+k]=vorbis_book_decode(books+book,&vd->opb))==-1)

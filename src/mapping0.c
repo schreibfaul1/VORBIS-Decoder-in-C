@@ -23,7 +23,6 @@
 #include "os.h"
 #include "ivorbiscodec.h"
 #include "mdct.h"
-#include "codec_internal.h"
 #include "vorbisDecoder.h"
 #include "misc.h"
 

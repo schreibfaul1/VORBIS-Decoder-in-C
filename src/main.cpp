@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "ivorbiscodec.h"
-#include "ivorbisfile.h"
+#include "vorbisDecoder.h"
 using namespace std;
 
 char pcmout[4096];

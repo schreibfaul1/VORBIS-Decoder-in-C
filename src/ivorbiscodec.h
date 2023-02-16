@@ -26,60 +26,24 @@ extern "C"
 #include "ogg.h"
 #include "vorbisDecoder.h"
 
-struct vorbis_dsp_state;
-typedef struct vorbis_dsp_state vorbis_dsp_state;
 
-typedef struct vorbis_info{
-  int version;
-  int channels;
-  long rate;
 
-  /* The below bitrate declarations are *hints*.
-     Combinations of the three values carry the following implications:
-     
-     all three set to the same value: 
-       implies a fixed rate bitstream
-     only nominal set: 
-       implies a VBR stream that averages the nominal bitrate.  No hard 
-       upper/lower limit
-     upper and or lower set: 
-       implies a VBR bitstream that obeys the bitrate limits. nominal 
-       may also be set to give a nominal rate.
-     none set:
-       the coder does not care to speculate.
-  */
 
-  long bitrate_upper;
-  long bitrate_nominal;
-  long bitrate_lower;
-  long bitrate_window;
-
-  void *codec_setup;
-} vorbis_info;
-
-typedef struct vorbis_comment{
-  char **user_comments;
-  int   *comment_lengths;
-  int    comments;
-  char  *vendor;
-
-} vorbis_comment;
 
 
 /* Vorbis PRIMITIVES: general ***************************************/
 
-extern void     vorbis_info_init(vorbis_info *vi);
-extern void     vorbis_info_clear(vorbis_info *vi);
-extern int      vorbis_info_blocksize(vorbis_info *vi,int zo);
-extern void     vorbis_comment_init(vorbis_comment *vc);
-extern void     vorbis_comment_add(vorbis_comment *vc, char *comment); 
-extern void     vorbis_comment_add_tag(vorbis_comment *vc, 
-				       char *tag, char *contents);
-extern char    *vorbis_comment_query(vorbis_comment *vc, char *tag, int count);
-extern int      vorbis_comment_query_count(vorbis_comment *vc, char *tag);
-extern void     vorbis_comment_clear(vorbis_comment *vc);
-extern int _ilog(unsigned int v);
-extern int32_t vorbis_book_decodevv_add(codebook *book, int32_t **a, long offset, int ch, oggpack_buffer *b, int n, int point);
+//
+//
+//
+//
+//extern void     vorbis_comment_add(vorbis_comment *vc, char *comment);
+//extern void     vorbis_comment_add_tag(vorbis_comment *vc, char *tag, char *contents);
+//extern char    *vorbis_comment_query(vorbis_comment *vc, char *tag, int count);
+//extern int      vorbis_comment_query_count(vorbis_comment *vc, char *tag);
+//
+//extern int _ilog(unsigned int v);
+//extern int32_t vorbis_book_decodevv_add(codebook *book, int32_t **a, long offset, int ch, oggpack_buffer *b, int n, int point);
 
 /* Vorbis ERRORS and return codes ***********************************/
 

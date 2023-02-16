@@ -22,10 +22,6 @@
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
-
-#include "codec_internal.h"
-#include "ivorbisfile.h"
-
 #include "os.h"
 #include "misc.h"
 

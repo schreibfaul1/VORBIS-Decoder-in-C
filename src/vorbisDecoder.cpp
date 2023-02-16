@@ -165,7 +165,7 @@ int _ilog(unsigned int v) {
 	return (ret);
 }
 //-------------------------------------------------------------------------------------------------
-uint32_t decpack(long entry, long used_entry, long quantvals, codebook *b, oggpack_buffer *opb, int maptype) {
+uint32_t decpack(int32_t entry, int32_t used_entry, int32_t quantvals, codebook *b, oggpack_buffer *opb, int maptype) {
 	uint32_t ret = 0;
 	int j;
 
@@ -207,8 +207,8 @@ uint32_t decpack(long entry, long used_entry, long quantvals, codebook *b, oggpa
  biased exponent) : neeeeeee eeemmmmm mmmmmmmm mmmmmmmm
  Why not IEEE?  It's just not that important here. */
 
-int32_t _float32_unpack(long val, int *point) {
-	long mant = val & 0x1fffff;
+int32_t _float32_unpack(int32_t val, int *point) {
+	int32_t mant = val & 0x1fffff;
 	int sign = val & 0x80000000;
 
 	*point = ((val & 0x7fe00000L) >> 21) - 788;
@@ -228,7 +228,7 @@ int32_t _float32_unpack(long val, int *point) {
 //-------------------------------------------------------------------------------------------------
 /* choose the smallest supported node size that fits our decode table.
  Legal bytewidths are 1/1 1/2 2/2 2/4 4/4 */
-int _determine_node_bytes(long used, int leafwidth) {
+int _determine_node_bytes(int32_t used, int leafwidth) {
 
 	/* special case small books to size 4 to avoid multiple special
 	 cases in repack */
@@ -252,9 +252,9 @@ int _determine_leaf_words(int nodeb, int leafwidth) {
 //-------------------------------------------------------------------------------------------------
 /* given a list of word lengths, number of used entries, and byte
  width of a leaf, generate the decode table */
-int _make_words(char *l, long n, uint32_t *r, long quantvals, codebook *b, oggpack_buffer *opb, int maptype) {
-	long i, j, count = 0;
-	long top = 0;
+int _make_words(char *l, int32_t n, uint32_t *r, int32_t quantvals, codebook *b, oggpack_buffer *opb, int maptype) {
+	int32_t i, j, count = 0;
+	int32_t top = 0;
 	uint32_t marker[33];
 
 	if (n < 2) {
@@ -263,10 +263,10 @@ int _make_words(char *l, long n, uint32_t *r, long quantvals, codebook *b, oggpa
 		memset(marker, 0, sizeof(marker));
 
 		for (i = 0; i < n; i++) {
-			long length = l[i];
+			int32_t length = l[i];
 			if (length) {
 				uint32_t entry = marker[length];
-				long chase = 0;
+				int32_t chase = 0;
 				if (count && !entry)
 					return -1; /* overpopulated tree! */
 
@@ -301,7 +301,7 @@ int _make_words(char *l, long n, uint32_t *r, long quantvals, codebook *b, oggpa
 					marker[j]++;
 				}
 
-				/* prune the tree; the implicit invariant says all the longer
+				/* prune the tree; the implicit invariant says all the int32_ter
 				 markers were dangling from our just-taken node.  Dangle them
 				 from our *new* node. */
 				for (j = length + 1; j < 33; j++)
@@ -317,7 +317,7 @@ int _make_words(char *l, long n, uint32_t *r, long quantvals, codebook *b, oggpa
 	return 0;
 }
 //-------------------------------------------------------------------------------------------------
-int _make_decode_table(codebook *s, char *lengthlist, long quantvals, oggpack_buffer *opb, int maptype) {
+int _make_decode_table(codebook *s, char *lengthlist, int32_t quantvals, oggpack_buffer *opb, int maptype) {
 	int i;
 	uint32_t *work;
 
@@ -355,7 +355,7 @@ int _make_decode_table(codebook *s, char *lengthlist, long quantvals, oggpack_bu
 	} else {
 		/* more complex; we have to do a two-pass repack that updates the
 		 node indexing. */
-		long top = s->used_entries * 3 - 2;
+		int32_t top = s->used_entries * 3 - 2;
 		if (s->dec_nodeb == 1) {
 			unsigned char *out = (unsigned char*) s->dec_table;
 
@@ -439,8 +439,8 @@ int32_t _book_maptype1_quantvals(codebook *b) {
 	int vals = b->entries >> ((bits - 1) * (b->dim - 1) / b->dim);
 
 	while (1) {
-		long acc = 1;
-		long acc1 = 1;
+		int32_t acc = 1;
+		int32_t acc1 = 1;
 		int i;
 		for (i = 0; i < b->dim; i++) {
 			acc *= vals;
@@ -460,7 +460,7 @@ int32_t _book_maptype1_quantvals(codebook *b) {
 //-------------------------------------------------------------------------------------------------
 void vorbis_book_clear(codebook *b) {
 	/* static book is not cleared; we're likely called on the lookup and
-	 the static codebook belongs to the info struct */
+	 the static codebook beint32_ts to the info struct */
 	if (b->q_val)
 		free(b->q_val);
 	if (b->dec_table)
@@ -472,7 +472,7 @@ void vorbis_book_clear(codebook *b) {
 int vorbis_book_unpack(oggpack_buffer *opb, codebook *s) {
 	char *lengthlist = NULL;
 	int quantvals = 0;
-	long i, j;
+	int32_t i, j;
 	int maptype;
 
 	memset(s, 0, sizeof(*s));
@@ -499,7 +499,7 @@ int vorbis_book_unpack(oggpack_buffer *opb, codebook *s) {
 
 			for (i = 0; i < s->entries; i++) {
 				if (oggpack_read(opb, 1)) {
-					long num = oggpack_read(opb, 5);
+					int32_t num = oggpack_read(opb, 5);
 					if (num == -1)
 						goto _eofout;
 					lengthlist[i] = num + 1;
@@ -513,7 +513,7 @@ int vorbis_book_unpack(oggpack_buffer *opb, codebook *s) {
 			/* all entries used; no tagging */
 			s->used_entries = s->entries;
 			for (i = 0; i < s->entries; i++) {
-				long num = oggpack_read(opb, 5);
+				int32_t num = oggpack_read(opb, 5);
 				if (num == -1)
 					goto _eofout;
 				lengthlist[i] = num + 1;
@@ -526,13 +526,13 @@ int vorbis_book_unpack(oggpack_buffer *opb, codebook *s) {
 	case 1:
 		/* ordered */
 	{
-		long length = oggpack_read(opb, 5) + 1;
+		int32_t length = oggpack_read(opb, 5) + 1;
 
 		s->used_entries = s->entries;
 		lengthlist = (char*) alloca(sizeof(*lengthlist) * s->entries);
 
 		for (i = 0; i < s->entries;) {
-			long num = oggpack_read(opb, _ilog(s->entries - i));
+			int32_t num = oggpack_read(opb, _ilog(s->entries - i));
 			if (num == -1)
 				goto _eofout;
 			for (j = 0; j < num && i < s->entries; j++, i++)
@@ -585,9 +585,9 @@ int vorbis_book_unpack(oggpack_buffer *opb, codebook *s) {
 		/* dec_type choices here are 1,2; 3 doesn't make sense */
 		{
 			/* packed values */
-			long total1 = (s->q_bits * s->dim + 8) / 8; /* remember flag bit */
+			int32_t total1 = (s->q_bits * s->dim + 8) / 8; /* remember flag bit */
 			/* vector of column offsets; remember flag bit */
-			long total2 = (_ilog(quantvals - 1) * s->dim + 8) / 8
+			int32_t total2 = (_ilog(quantvals - 1) * s->dim + 8) / 8
 					+ (s->q_bits + 7) / 8;
 
 			if (total1 <= 4 && total1 <= total2) {
@@ -705,7 +705,7 @@ int vorbis_book_unpack(oggpack_buffer *opb, codebook *s) {
 uint32_t decode_packed_entry_number(codebook *book,	oggpack_buffer *b) {
 	uint32_t chase = 0;
 	int read = book->dec_maxlength;
-	long lok = oggpack_look(b, read), i;
+	int32_t lok = oggpack_look(b, read), i;
 
 	while (lok < 0 && read > 1)
 		lok = oggpack_look(b, --read);
@@ -935,13 +935,13 @@ int32_t vorbis_book_decodev_set(codebook *book, int32_t *a, oggpack_buffer *b, i
 }
 //-------------------------------------------------------------------------------------------------
 /* decode vector / dim granularity guarding is done in the upper layer */
-int32_t vorbis_book_decodevv_add(codebook *book, int32_t **a, long offset, int ch, oggpack_buffer *b, int n, int point) {
+int32_t vorbis_book_decodevv_add(codebook *book, int32_t **a, int32_t offset, int ch, oggpack_buffer *b, int n, int point) {
 	if (book->used_entries > 0) {
 
 		int32_t *v = (int32_t*) alloca(sizeof(*v) * book->dim);
-		long i, j;
+		int32_t i, j;
 		int chptr = 0;
-		long m = offset + n;
+		int32_t m = offset + n;
 
 		for (i = offset; i < m;) {
 			if (decode_map(book, b, v, point))
