@@ -18,6 +18,7 @@
 #define VI_MAPB 1
 
 #define XdB(n) (n)
+#define LSP_FRACBITS 14
 
 #define _lookspan()   while(!end){\
                         head=head->next;\
@@ -198,6 +199,7 @@ typedef struct OggVorbis_File {
 } OggVorbis_File;
 
 
+
 //-------------------------------------------------------------------------------------------------
 void _span(oggpack_buffer *b);
 void oggpack_readinit(oggpack_buffer *b, ogg_reference *r);
@@ -235,12 +237,16 @@ int32_t vorbis_packet_blocksize(vorbis_info *vi, ogg_packet *op);
 int vorbis_dsp_synthesis(vorbis_dsp_state *vd, ogg_packet *op, int decodep);
 int32_t vorbis_fromdBlook_i(long a);
 void render_line(int n, int x0, int x1, int y0, int y1, int32_t *d);
-
-
-
-
-
-
+int32_t vorbis_coslook_i(long a);
+int32_t vorbis_coslook2_i(long a);
+int32_t toBARK(int n);
+int32_t vorbis_invsqlook_i(long a, long e);
+void vorbis_lsp_to_curve(int32_t *curve, int n, int ln, int32_t *lsp, int m, int32_t amp, int32_t ampoffset, int32_t nyq);
+void floor0_free_info(vorbis_info_floor *i);
+vorbis_info_floor* floor0_info_unpack(vorbis_info *vi, oggpack_buffer *opb);
+int floor0_memosize(vorbis_info_floor *i);
+int32_t* floor0_inverse1(vorbis_dsp_state *vd, vorbis_info_floor *i, int32_t *lsp);
+int floor0_inverse2(vorbis_dsp_state *vd, vorbis_info_floor *i, int32_t *lsp, int32_t *out);
 
 
 

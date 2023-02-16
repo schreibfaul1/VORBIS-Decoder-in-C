@@ -10,6 +10,7 @@
 #include "os.h"
 #include "window_lookup.h"
 #include "mdct.h"
+#include "lsp_lookup.h"
 
 const uint32_t mask[]=
 {0x00000000,0x00000001,0x00000003,0x00000007,0x0000000f,
@@ -86,6 +87,29 @@ const int32_t FLOOR_fromdB_LOOKUP[256]={
   XdB(0x52606733), XdB(0x57bad899), XdB(0x5d6e593a), XdB(0x6380b298),
   XdB(0x69f80e9a), XdB(0x70dafda8), XdB(0x78307d76), XdB(0x7fffffff),
 };
+
+const uint16_t barklook[54] = { 0, 51, 102, 154, 206, 258, 311, 365, 420,
+		477, 535, 594, 656, 719, 785, 854, 926, 1002, 1082, 1166, 1256, 1352,
+		1454, 1564, 1683, 1812, 1953, 2107, 2276, 2463, 2670, 2900, 3155, 3440,
+		3756, 4106, 4493, 4919, 5387, 5901, 6466, 7094, 7798, 8599, 9528, 10623,
+		11935, 13524, 15453, 17775, 20517, 23667, 27183, 31004 };
+
+const unsigned char MLOOP_1[64] = { 0, 10, 11, 11, 12, 12, 12, 12, 13,
+		13, 13, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14,
+		14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
+		15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
+		15, };
+
+const unsigned char MLOOP_2[64] = { 0, 4, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7,
+		7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9,
+		9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+		9, 9, 9, 9, };
+
+const unsigned char MLOOP_3[8] = { 0, 1, 2, 2, 3, 3, 3, 3 };
+
+/* interpolated 1./sqrt(p) where .5 <= a < 1. (.100000... to .111111...) in
+ 16.16 format returns in m.8 format */
+long ADJUST_SQRT2[2] = { 8192, 5792 };
 
 //-------------------------------------------------------------------------------------------------
 /* spans forward, skipping as many bytes as headend is negative; if
@@ -1349,12 +1373,314 @@ void render_line(int n, int x0, int x1, int y0, int y1, int32_t *d) {
 		d[x] = MULT31_SHIFT15(d[x], FLOOR_fromdB_LOOKUP[y]);
 	}
 }
+//-------------------------------------------------------------------------------------------------
+/* interpolated lookup based cos function, domain 0 to PI only */
+/* a is in 0.16 format, where 0==0, 2^^16-1==PI, return 0.14 */
+int32_t vorbis_coslook_i(long a) {
+	int i = a >> COS_LOOKUP_I_SHIFT;
+	int d = a & COS_LOOKUP_I_MASK;
+	return COS_LOOKUP_I[i] - ((d * (COS_LOOKUP_I[i] - COS_LOOKUP_I[i + 1])) >>
+	COS_LOOKUP_I_SHIFT);
+}
+//-------------------------------------------------------------------------------------------------
+/* interpolated half-wave lookup based cos function */
+/* a is in 0.16 format, where 0==0, 2^^16==PI, return .LSP_FRACBITS */
+int32_t vorbis_coslook2_i(long a) {
+	int i = a >> COS_LOOKUP_I_SHIFT;
+	int d = a & COS_LOOKUP_I_MASK;
+	return ((COS_LOOKUP_I[i] << COS_LOOKUP_I_SHIFT)
+			- d * (COS_LOOKUP_I[i] - COS_LOOKUP_I[i + 1]))
+			>> (COS_LOOKUP_I_SHIFT - LSP_FRACBITS + 14);
+}
+//-------------------------------------------------------------------------------------------------
+/* used in init only; interpolate the long way */
+int32_t toBARK(int n) {
+	int i;
+	for (i = 0; i < 54; i++)
+		if (n >= barklook[i] && n < barklook[i + 1])
+			break;
 
+	if (i == 54) {
+		return 54 << 14;
+	} else {
+		return (i << 14)
+				+ (((n - barklook[i])
+						* ((1UL << 31) / (barklook[i + 1] - barklook[i]))) >> 17);
+	}
+}
+//-------------------------------------------------------------------------------------------------
+int32_t vorbis_invsqlook_i(long a, long e) {
+	long i = (a & 0x7fff) >> (INVSQ_LOOKUP_I_SHIFT - 1);
+	long d = a & INVSQ_LOOKUP_I_MASK; /*  0.10 */
+	long val = INVSQ_LOOKUP_I[i] - /*  1.16 */
+	((INVSQ_LOOKUP_IDel[i] * d) >> INVSQ_LOOKUP_I_SHIFT); /* result 1.16 */
+	val *= ADJUST_SQRT2[e & 1];
+	e = (e >> 1) + 21;
+	return (val >> e);
+}
+//-------------------------------------------------------------------------------------------------
+void vorbis_lsp_to_curve(int32_t *curve, int n, int ln, int32_t *lsp, int m,
+		int32_t amp, int32_t ampoffset, int32_t nyq) {
 
+	/* 0 <= m < 256 */
 
+	/* set up for using all int later */
+	int i;
+	int ampoffseti = ampoffset * 4096;
+	int ampi = amp;
+	int32_t *ilsp = (int32_t*) alloca(m * sizeof(*ilsp));
+	uint32_t imap = (1UL << 31) / ln;
+	uint32_t tBnyq1 = toBARK(nyq) << 1;
 
+	/* Besenham for frequency scale to avoid a division */
+	int f = 0;
+	int fdx = n;
+	int fbase = nyq / fdx;
+	int ferr = 0;
+	int fdy = nyq - fbase * fdx;
+	int map = 0;
 
+	uint32_t nextbark = MULT31(imap >> 1, tBnyq1);
 
+	int nextf =
+			barklook[nextbark >> 14]
+					+ (((nextbark & 0x3fff)
+							* (barklook[(nextbark >> 14) + 1]
+									- barklook[nextbark >> 14])) >> 14);
 
+	/* lsp is in 8.24, range 0 to PI; coslook wants it in .16 0 to 1*/
+	for (i = 0; i < m; i++) {
+		int32_t val = MULT32(lsp[i], 0x517cc2);
+		/* safeguard against a malicious stream */
+		if (val < 0 || (val >> COS_LOOKUP_I_SHIFT) >= COS_LOOKUP_I_SZ) {
+			memset(curve, 0, sizeof(*curve) * n);
+			return;
+		}
+
+		ilsp[i] = vorbis_coslook_i(val);
+	}
+
+	i = 0;
+	while (i < n) {
+		int j;
+		uint32_t pi = 46341; /* 2**-.5 in 0.16 */
+		uint32_t qi = 46341;
+		int32_t qexp = 0, shift;
+		int32_t wi;
+
+		wi = vorbis_coslook2_i((map * imap) >> 15);
+
+		qi *= labs(ilsp[0] - wi);
+		pi *= labs(ilsp[1] - wi);
+
+		for (j = 3; j < m; j += 2) {
+			if (!(shift = MLOOP_1[(pi | qi) >> 25]))
+				if (!(shift = MLOOP_2[(pi | qi) >> 19]))
+					shift = MLOOP_3[(pi | qi) >> 16];
+
+			qi = (qi >> shift) * labs(ilsp[j - 1] - wi);
+			pi = (pi >> shift) * labs(ilsp[j] - wi);
+			qexp += shift;
+		}
+		if (!(shift = MLOOP_1[(pi | qi) >> 25]))
+			if (!(shift = MLOOP_2[(pi | qi) >> 19]))
+				shift = MLOOP_3[(pi | qi) >> 16];
+
+		/* pi,qi normalized collectively, both tracked using qexp */
+
+		if (m & 1) {
+			/* odd order filter; slightly assymetric */
+			/* the last coefficient */
+			qi = (qi >> shift) * labs(ilsp[j - 1] - wi);
+			pi = (pi >> shift) << 14;
+			qexp += shift;
+
+			if (!(shift = MLOOP_1[(pi | qi) >> 25]))
+				if (!(shift = MLOOP_2[(pi | qi) >> 19]))
+					shift = MLOOP_3[(pi | qi) >> 16];
+
+			pi >>= shift;
+			qi >>= shift;
+			qexp += shift - 14 * ((m + 1) >> 1);
+
+			pi = ((pi * pi) >> 16);
+			qi = ((qi * qi) >> 16);
+			qexp = qexp * 2 + m;
+
+			pi *= (1 << 14) - ((wi * wi) >> 14);
+			qi += pi >> 14;
+
+		} else {
+			/* even order filter; still symmetric */
+
+			/* p*=p(1-w), q*=q(1+w), let normalization drift because it isn't
+			 worth tracking step by step */
+
+			pi >>= shift;
+			qi >>= shift;
+			qexp += shift - 7 * m;
+
+			pi = ((pi * pi) >> 16);
+			qi = ((qi * qi) >> 16);
+			qexp = qexp * 2 + m;
+
+			pi *= (1 << 14) - wi;
+			qi *= (1 << 14) + wi;
+			qi = (qi + pi) >> 14;
+
+		}
+
+		/* we've let the normalization drift because it wasn't important;
+		 however, for the lookup, things must be normalized again.  We
+		 need at most one right shift or a number of left shifts */
+
+		if (qi & 0xffff0000) { /* checks for 1.xxxxxxxxxxxxxxxx */
+			qi >>= 1;
+			qexp++;
+		} else
+			while (qi && !(qi & 0x8000)) { /* checks for 0.0xxxxxxxxxxxxxxx or less*/
+				qi <<= 1;
+				qexp--;
+			}
+
+		amp = vorbis_fromdBlook_i(ampi * /*  n.4         */
+		vorbis_invsqlook_i(qi, qexp) -
+		/*  m.8, m+n<=8 */
+		ampoffseti); /*  8.12[0]     */
+
+		curve[i] = MULT31_SHIFT15(curve[i], amp);
+
+		while (++i < n) {
+
+			/* line plot to get new f */
+			ferr += fdy;
+			if (ferr >= fdx) {
+				ferr -= fdx;
+				f++;
+			}
+			f += fbase;
+
+			if (f >= nextf)
+				break;
+
+			curve[i] = MULT31_SHIFT15(curve[i], amp);
+		}
+
+		while (1) {
+			map++;
+
+			if (map + 1 < ln) {
+
+				nextbark = MULT31((map + 1) * (imap >> 1), tBnyq1);
+
+				nextf = barklook[nextbark >> 14]
+						+ (((nextbark & 0x3fff)
+								* (barklook[(nextbark >> 14) + 1]
+										- barklook[nextbark >> 14])) >> 14);
+				if (f <= nextf)
+					break;
+
+			} else {
+				nextf = 9999999;
+				break;
+			}
+		}
+		if (map >= ln) {
+			map = ln - 1; /* guard against the approximation */
+			nextf = 9999999;
+		}
+	}
+}
+//-------------------------------------------------------------------------------------------------
+void floor0_free_info(vorbis_info_floor *i) {
+	vorbis_info_floor0 *info = (vorbis_info_floor0*) i;
+	if (info)
+		free(info);
+}
+//-------------------------------------------------------------------------------------------------
+vorbis_info_floor* floor0_info_unpack(vorbis_info *vi, oggpack_buffer *opb) {
+	codec_setup_info *ci = (codec_setup_info*) vi->codec_setup;
+	int j;
+
+	vorbis_info_floor0 *info = (vorbis_info_floor0*) malloc(sizeof(*info));
+	info->order = oggpack_read(opb, 8);
+	info->rate = oggpack_read(opb, 16);
+	info->barkmap = oggpack_read(opb, 16);
+	info->ampbits = oggpack_read(opb, 6);
+	info->ampdB = oggpack_read(opb, 8);
+	info->numbooks = oggpack_read(opb, 4) + 1;
+
+	if (info->order < 1)
+		goto err_out;
+	if (info->rate < 1)
+		goto err_out;
+	if (info->barkmap < 1)
+		goto err_out;
+
+	for (j = 0; j < info->numbooks; j++) {
+		info->books[j] = oggpack_read(opb, 8);
+		if (info->books[j] >= ci->books)
+			goto err_out;
+	}
+
+	if (oggpack_eop(opb))
+		goto err_out;
+	return (info);
+
+	err_out: floor0_free_info(info);
+	return (NULL);
+}
+//-------------------------------------------------------------------------------------------------
+int floor0_memosize(vorbis_info_floor *i) {
+	vorbis_info_floor0 *info = (vorbis_info_floor0*) i;
+	return info->order + 1;
+}
+//-------------------------------------------------------------------------------------------------
+int32_t* floor0_inverse1(vorbis_dsp_state *vd, vorbis_info_floor *i, int32_t *lsp) {
+	vorbis_info_floor0 *info = (vorbis_info_floor0*) i;
+	int j, k;
+
+	int ampraw = oggpack_read(&vd->opb, info->ampbits);
+	if (ampraw > 0) { /* also handles the -1 out of data case */
+		long maxval = (1 << info->ampbits) - 1;
+		int amp = ((ampraw * info->ampdB) << 4) / maxval;
+		int booknum = oggpack_read(&vd->opb, _ilog(info->numbooks));
+
+		if (booknum != -1 && booknum < info->numbooks) { /* be paranoid */
+			codec_setup_info *ci = (codec_setup_info*) vd->vi->codec_setup;
+			codebook *b = ci->book_param + info->books[booknum];
+			int32_t last = 0;
+
+			if (vorbis_book_decodev_set(b, lsp, &vd->opb, info->order, -24)
+					== -1)
+				goto eop;
+			for (j = 0; j < info->order;) {
+				for (k = 0; j < info->order && k < b->dim; k++, j++)
+					lsp[j] += last;
+				last = lsp[j - 1];
+			}
+
+			lsp[info->order] = amp;
+			return (lsp);
+		}
+	}
+	eop: return (NULL);
+}
+//-------------------------------------------------------------------------------------------------
+int floor0_inverse2(vorbis_dsp_state *vd, vorbis_info_floor *i, int32_t *lsp, int32_t *out) {
+	vorbis_info_floor0 *info = (vorbis_info_floor0*) i;
+	codec_setup_info *ci = (codec_setup_info*) vd->vi->codec_setup;
+
+	if (lsp) {
+		int32_t amp = lsp[info->order];
+
+		/* take the coefficients back to a spectral envelope curve */
+		vorbis_lsp_to_curve(out, ci->blocksizes[vd->W] / 2, info->barkmap, lsp,
+				info->order, amp, info->ampdB, info->rate >> 1);
+		return (1);
+	}
+	memset(out, 0, sizeof(*out) * ci->blocksizes[vd->W] / 2);
+	return (0);
+}
 
 
