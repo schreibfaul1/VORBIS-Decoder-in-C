@@ -24,6 +24,7 @@ extern "C"
 #endif /* __cplusplus */
 
 #include "ogg.h"
+#include "vorbisDecoder.h"
 
 struct vorbis_dsp_state;
 typedef struct vorbis_dsp_state vorbis_dsp_state;
@@ -77,6 +78,8 @@ extern void     vorbis_comment_add_tag(vorbis_comment *vc,
 extern char    *vorbis_comment_query(vorbis_comment *vc, char *tag, int count);
 extern int      vorbis_comment_query_count(vorbis_comment *vc, char *tag);
 extern void     vorbis_comment_clear(vorbis_comment *vc);
+extern int _ilog(unsigned int v);
+extern int32_t vorbis_book_decodevv_add(codebook *book, int32_t **a, long offset, int ch, oggpack_buffer *b, int n, int point);
 
 /* Vorbis ERRORS and return codes ***********************************/
 

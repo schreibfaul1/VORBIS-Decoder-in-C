@@ -49,13 +49,23 @@ int oggpack_eop(oggpack_buffer *b);
 int32_t oggpack_read(oggpack_buffer *b, int bits);
 int32_t oggpack_bytes(oggpack_buffer *b);
 int32_t oggpack_bits(oggpack_buffer *b);
-
-
-
-
-
-
-
+int _ilog(unsigned int v);
+uint32_t decpack(long entry, long used_entry, long quantvals, codebook *b, oggpack_buffer *opb, int maptype);
+int32_t _float32_unpack(long val, int *point);
+int _determine_node_bytes(long used, int leafwidth);
+int _determine_leaf_words(int nodeb, int leafwidth);
+int _make_words(char *l, long n, uint32_t *r, long quantvals, codebook *b, oggpack_buffer *opb, int maptype);
+int _make_decode_table(codebook *s, char *lengthlist, long quantvals, oggpack_buffer *opb, int maptype);
+int32_t _book_maptype1_quantvals(codebook *b);
+void vorbis_book_clear(codebook *b);
+int vorbis_book_unpack(oggpack_buffer *opb, codebook *s);
+uint32_t decode_packed_entry_number(codebook *book,	oggpack_buffer *b);
+int32_t vorbis_book_decode(codebook *book, oggpack_buffer *b);
+int decode_map(codebook *s, oggpack_buffer *b, int32_t *v, int point);
+int32_t vorbis_book_decodevs_add(codebook *book, int32_t *a, oggpack_buffer *b,	int n, int point);
+int32_t vorbis_book_decodev_add(codebook *book, int32_t *a, oggpack_buffer *b, int n, int point);
+int32_t vorbis_book_decodev_set(codebook *book, int32_t *a, oggpack_buffer *b, int n, int point);
+int32_t vorbis_book_decodevv_add(codebook *book, int32_t **a, long offset, int ch, oggpack_buffer *b, int n, int point);
 
 
 
@@ -72,12 +82,12 @@ int32_t oggpack_bits(oggpack_buffer *b);
 
 extern void vorbis_book_clear(codebook *b);
 extern int  vorbis_book_unpack(oggpack_buffer *b,codebook *c);
-extern long vorbis_book_decode(codebook *book, oggpack_buffer *b);
-extern long vorbis_book_decodevs_add(codebook *book, int32_t *a, oggpack_buffer *b,int n,int point);
-extern long vorbis_book_decodev_set(codebook *book, int32_t *a, oggpack_buffer *b,int n,int point);
-extern long vorbis_book_decodev_add(codebook *book, int32_t *a, oggpack_buffer *b,int n,int point);
-extern long vorbis_book_decodevv_add(codebook *book, int32_t **a, long off,int ch, oggpack_buffer *b,int n,int point);
-extern int _ilog(unsigned int v);
+extern int32_t vorbis_book_decode(codebook *book, oggpack_buffer *b);
+extern int32_t vorbis_book_decodevs_add(codebook *book, int32_t *a, oggpack_buffer *b,int n,int point);
+extern int32_t vorbis_book_decodev_set(codebook *book, int32_t *a, oggpack_buffer *b,int n,int point);
+extern int32_t vorbis_book_decodev_add(codebook *book, int32_t *a, oggpack_buffer *b,int n,int point);
+extern int32_t vorbis_book_decodevv_add(codebook *book, int32_t **a, long off,int ch, oggpack_buffer *b,int n,int point);
+
 
 
 
