@@ -205,7 +205,8 @@ int oggpack_eop(oggpack_buffer *b);
 int32_t oggpack_read(oggpack_buffer *b, int bits);
 int32_t oggpack_bytes(oggpack_buffer *b);
 int32_t oggpack_bits(oggpack_buffer *b);
-int _ilog(unsigned int v);
+int _ilog(uint32_t v);
+int _ilog(uint32_t v);
 uint32_t decpack(int32_t entry, int32_t used_entry, int32_t quantvals, codebook *b, oggpack_buffer *opb, int maptype);
 int32_t _float32_unpack(int32_t val, int *point);
 int _determine_node_bytes(int32_t used, int leafwidth);
@@ -222,6 +223,16 @@ int32_t vorbis_book_decodevs_add(codebook *book, int32_t *a, oggpack_buffer *b,	
 int32_t vorbis_book_decodev_add(codebook *book, int32_t *a, oggpack_buffer *b, int n, int point);
 int32_t vorbis_book_decodev_set(codebook *book, int32_t *a, oggpack_buffer *b, int n, int point);
 int32_t vorbis_book_decodevv_add(codebook *book, int32_t **a, int32_t offset, int ch, oggpack_buffer *b, int n, int point);
+int vorbis_dsp_restart(vorbis_dsp_state *v);
+vorbis_dsp_state* vorbis_dsp_create(vorbis_info *vi);
+void vorbis_dsp_destroy(vorbis_dsp_state *v);
+int32_t* _vorbis_window(int left);
+int vorbis_dsp_pcmout(vorbis_dsp_state *v, int16_t *pcm, int samples);
+int vorbis_dsp_read(vorbis_dsp_state *v, int s);
+int32_t vorbis_packet_blocksize(vorbis_info *vi, ogg_packet *op);
+int vorbis_dsp_synthesis(vorbis_dsp_state *vd, ogg_packet *op, int decodep);
+
+
 
 
 
@@ -266,7 +277,7 @@ extern int vorbis_dsp_restart(vorbis_dsp_state *v);
 extern int vorbis_dsp_synthesis(vorbis_dsp_state *vd, ogg_packet *op, int decodep);
 extern int vorbis_dsp_pcmout(vorbis_dsp_state *v, int16_t *pcm, int samples);
 extern int vorbis_dsp_read(vorbis_dsp_state *v, int samples);
-extern long vorbis_packet_blocksize(vorbis_info *vi, ogg_packet *op);
+extern int32_t vorbis_packet_blocksize(vorbis_info *vi, ogg_packet *op);
 extern int ov_open(FILE *f,OggVorbis_File *vf,char *initial,long ibytes);
 extern vorbis_comment *ov_comment(OggVorbis_File *vf,int link);
 extern long ov_read(OggVorbis_File *vf,void *buffer,int length);
@@ -280,4 +291,11 @@ extern void vorbis_info_init(vorbis_info *vi);
 extern void vorbis_comment_init(vorbis_comment *vc);
 extern int ov_raw_seek(OggVorbis_File *vf,int64_t pos);
 extern int vorbis_info_blocksize(vorbis_info *vi,int zo);
-
+extern void mdct_shift_right(int n, int32_t *in, int32_t *right);
+extern void mdct_unroll_lap(int n0,int n1, int lW,int W,
+			    int32_t *in, int32_t *right,
+			    const int32_t *w0,
+				const int32_t *w1,
+			    int16_t *out,
+			    int step,
+			    int start,int end /* samples, this frame */);
