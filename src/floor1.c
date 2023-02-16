@@ -22,7 +22,7 @@
 #include "ogg.h"
 #include "ivorbiscodec.h"
 #include "codec_internal.h"
-#include "codebook.h"
+#include "vorbisDecoder.h"
 #include "misc.h"
 
 extern const int32_t FLOOR_fromdB_LOOKUP[];

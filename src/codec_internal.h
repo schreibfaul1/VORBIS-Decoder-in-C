@@ -20,7 +20,7 @@
 
 #define CHUNKSIZE 1024
 
-#include "codebook.h"
+#include "vorbisDecoder.h"
 #include "ivorbiscodec.h"
 
 #define VI_TRANSFORMB 1

@@ -20,7 +20,7 @@
 #include <math.h>
 #include "ogg.h"
 #include "ivorbiscodec.h"
-#include "codebook.h"
+#include "vorbisDecoder.h"
 #include "misc.h"
 #include "os.h"
 

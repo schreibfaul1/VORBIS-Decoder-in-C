@@ -24,7 +24,7 @@
 #include "ivorbiscodec.h"
 #include "mdct.h"
 #include "codec_internal.h"
-#include "codebook.h"
+#include "vorbisDecoder.h"
 #include "misc.h"
 
 void mapping_clear_info(vorbis_info_mapping *info){
