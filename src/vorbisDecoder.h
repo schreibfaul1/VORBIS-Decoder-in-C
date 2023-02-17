@@ -316,3 +316,22 @@ extern void mdct_unroll_lap(int n0,int n1, int lW,int W,
 			    int16_t *out,
 			    int step,
 			    int start,int end /* samples, this frame */);
+void _v_readstring(oggpack_buffer *o, char *buf, int bytes);
+void vorbis_comment_init(vorbis_comment *vc);
+int tagcompare(const char *s1, const char *s2, int n);
+char* vorbis_comment_query(vorbis_comment *vc, char *tag, int count);
+int vorbis_comment_query_count(vorbis_comment *vc, char *tag);
+void vorbis_comment_clear(vorbis_comment *vc);
+int vorbis_info_blocksize(vorbis_info *vi, int zo);
+void vorbis_info_init(vorbis_info *vi);
+void vorbis_info_clear(vorbis_info *vi);
+int _vorbis_unpack_info(vorbis_info *vi, oggpack_buffer *opb);
+int _vorbis_unpack_comment(vorbis_comment *vc, oggpack_buffer *opb);
+int _vorbis_unpack_books(vorbis_info *vi, oggpack_buffer *opb);
+int vorbis_dsp_headerin(vorbis_info *vi, vorbis_comment *vc, ogg_packet *op);
+
+
+
+
+
+
