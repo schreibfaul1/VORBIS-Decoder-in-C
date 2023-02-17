@@ -20,6 +20,9 @@
 #define XdB(n) (n)
 #define LSP_FRACBITS 14
 
+#define floor1_rangedB 140 /* floor 1 fixed at -140dB to 0dB range */
+#define VIF_POSIT 63
+
 #define _lookspan()   while(!end){\
                         head=head->next;\
                         if(!head) return -1;\
@@ -55,25 +58,25 @@ typedef struct vorbis_dsp_state vorbis_dsp_state;
 typedef struct vorbis_info{
   int version;  // The below bitrate declarations are *hints*. Combinations of the three values carry
   int channels; // the following implications: all three set to the same value: implies a fixed rate bitstream
-  long rate;    // only nominal set:  implies a VBR stream that averages the nominal bitrate.  No hard
-  long bitrate_upper; // upper/lower limit upper and or lower set:  implies a VBR bitstream that obeys the
-  long bitrate_nominal; // bitrate limits. nominal may also be set to give a nominal rate. none set:
-  long bitrate_lower; //  the coder does not care to speculate.
-  long bitrate_window;
+  int32_t rate;    // only nominal set:  implies a VBR stream that averages the nominal bitrate.  No hard
+  int32_t bitrate_upper; // upper/lower limit upper and or lower set:  implies a VBR bitstream that obeys the
+  int32_t bitrate_nominal; // bitrate limits. nominal may also be set to give a nominal rate. none set:
+  int32_t bitrate_lower; //  the coder does not care to speculate.
+  int32_t bitrate_window;
   void *codec_setup;
 } vorbis_info;
 
 typedef void vorbis_info_floor;
 
 struct vorbis_dsp_state { // vorbis_dsp_state buffers the current vorbis audio analysis/synthesis state.
-	vorbis_info *vi;      // The DSP state belongs to a specific logical bitstream
+	vorbis_info *vi;      // The DSP state beint32_ts to a specific logical bitstream
 	oggpack_buffer opb;
 	int32_t **work;
 	int32_t **mdctright;
 	int out_begin;
 	int out_end;
-	long lW;
-	long W;
+	int32_t lW;
+	int32_t W;
 	int64_t granulepos;
 	int64_t sequence;
 	int64_t sample_count;
@@ -81,8 +84,8 @@ struct vorbis_dsp_state { // vorbis_dsp_state buffers the current vorbis audio a
 
 typedef struct {
 	int order;
-	long rate;
-	long barkmap;
+	int32_t rate;
+	int32_t barkmap;
 	int ampbits;
 	int ampdB;
 	int numbooks; /* <= 16 */
@@ -92,17 +95,17 @@ typedef struct {
 typedef struct {
 	char class_dim; /* 1 to 8 */
 	char class_subs; /* 0,1,2,3 (bits: 1<<n poss) */
-	unsigned char class_book; /* subs ^ dim entries */
-	unsigned char class_subbook[8]; /* [VIF_CLASS][subs] */
+	uint8_t class_book; /* subs ^ dim entries */
+	uint8_t class_subbook[8]; /* [VIF_CLASS][subs] */
 } floor1class;
 
 typedef struct {
 	floor1class *_class; /* [VIF_CLASS] */
-	unsigned char *partitionclass; /* [VIF_PARTS]; 0 to 15 */
+	uint8_t *partitionclass; /* [VIF_PARTS]; 0 to 15 */
 	uint16_t *postlist; /* [VIF_POSIT+2]; first two implicit */
-	unsigned char *forward_index; /* [VIF_POSIT+2]; */
-	unsigned char *hineighbor; /* [VIF_POSIT]; */
-	unsigned char *loneighbor; /* [VIF_POSIT]; */
+	uint8_t *forward_index; /* [VIF_POSIT+2]; */
+	uint8_t *hineighbor; /* [VIF_POSIT]; */
+	uint8_t *loneighbor; /* [VIF_POSIT]; */
 	int partitions; /* 0 to 31 */
 	int posts;
 	int mult; /* 1 2 3 or 4 */
@@ -110,26 +113,26 @@ typedef struct {
 
 typedef struct vorbis_info_residue {
 	int type;
-	unsigned char *stagemasks;
-	unsigned char *stagebooks;
+	uint8_t *stagemasks;
+	uint8_t *stagebooks;
 	/* block-partitioned VQ coded straight residue */
-	long begin;
-	long end;
+	int32_t begin;
+	int32_t end;
 	/* first stage (lossless partitioning) */
 	int grouping; /* group n vectors per partition */
 	char partitions; /* possible codebooks for a partition */
-	unsigned char groupbook; /* huffbook for partitioning */
+	uint8_t groupbook; /* huffbook for partitioning */
 	char stages;
 } vorbis_info_residue;
 
 typedef struct {  // mode
-	unsigned char blockflag;
-	unsigned char mapping;
+	uint8_t blockflag;
+	uint8_t mapping;
 } vorbis_info_mode;
 
 typedef struct coupling_step { // Mapping backend generic
-	unsigned char mag;
-	unsigned char ang;
+	uint8_t mag;
+	uint8_t ang;
 } coupling_step;
 
 typedef struct submap {
@@ -139,18 +142,18 @@ typedef struct submap {
 
 typedef struct vorbis_info_mapping {
 	int submaps;
-	unsigned char *chmuxlist;
+	uint8_t *chmuxlist;
 	submap *submaplist;
 	int coupling_steps;
 	coupling_step *coupling;
 } vorbis_info_mapping;
 
-typedef struct codec_setup_info { // Vorbis supports only short and long blocks, but allows the
-	long blocksizes[2];           // encoder to choose the sizes
+typedef struct codec_setup_info { // Vorbis supports only short and int32_t blocks, but allows the
+	int32_t blocksizes[2];           // encoder to choose the sizes
 	int modes;                    // modes are the primary means of supporting on-the-fly different
 	int maps;                     // blocksizes, different channel mappings (LR or M/A),
 	int floors;                   // different residue backends, etc.  Each mode consists of a
-	int residues;                 // blocksize flag and a mapping (along with the mapping setup
+	int residues;                 // blocksize flag and a mapping (aint32_t with the mapping setup
 	int books;
 	vorbis_info_mode *mode_param;
 	vorbis_info_mapping *map_param;
@@ -164,7 +167,7 @@ typedef struct {
 	size_t (*read_func)(void *ptr, size_t size, size_t nmemb, void *datasource);
 	int (*seek_func)(void *datasource, int64_t offset, int whence);
 	int (*close_func)(void *datasource);
-	long (*tell_func)(void *datasource);
+	int32_t (*tell_func)(void *datasource);
 } ov_callbacks;
 
 typedef struct vorbis_comment {
@@ -235,19 +238,25 @@ int vorbis_dsp_pcmout(vorbis_dsp_state *v, int16_t *pcm, int samples);
 int vorbis_dsp_read(vorbis_dsp_state *v, int s);
 int32_t vorbis_packet_blocksize(vorbis_info *vi, ogg_packet *op);
 int vorbis_dsp_synthesis(vorbis_dsp_state *vd, ogg_packet *op, int decodep);
-int32_t vorbis_fromdBlook_i(long a);
+int32_t vorbis_fromdBlook_i(int32_t a);
 void render_line(int n, int x0, int x1, int y0, int y1, int32_t *d);
-int32_t vorbis_coslook_i(long a);
-int32_t vorbis_coslook2_i(long a);
+int32_t vorbis_coslook_i(int32_t a);
+int32_t vorbis_coslook2_i(int32_t a);
 int32_t toBARK(int n);
-int32_t vorbis_invsqlook_i(long a, long e);
+int32_t vorbis_invsqlook_i(int32_t a, int32_t e);
 void vorbis_lsp_to_curve(int32_t *curve, int n, int ln, int32_t *lsp, int m, int32_t amp, int32_t ampoffset, int32_t nyq);
 void floor0_free_info(vorbis_info_floor *i);
 vorbis_info_floor* floor0_info_unpack(vorbis_info *vi, oggpack_buffer *opb);
 int floor0_memosize(vorbis_info_floor *i);
 int32_t* floor0_inverse1(vorbis_dsp_state *vd, vorbis_info_floor *i, int32_t *lsp);
 int floor0_inverse2(vorbis_dsp_state *vd, vorbis_info_floor *i, int32_t *lsp, int32_t *out);
-
+void floor1_free_info(vorbis_info_floor *i);
+void vorbis_mergesort(uint8_t *index, uint16_t *vals, uint16_t n);
+vorbis_info_floor* floor1_info_unpack(vorbis_info *vi, oggpack_buffer *opb);
+int render_point(int x0, int x1, int y0, int y1, int x);
+int floor1_memosize(vorbis_info_floor *i);
+int32_t* floor1_inverse1(vorbis_dsp_state *vd, vorbis_info_floor *in, int32_t *fit_value);
+int floor1_inverse2(vorbis_dsp_state *vd, vorbis_info_floor *in, int32_t *fit_value, int32_t *out);
 
 
 
@@ -286,9 +295,9 @@ extern int vorbis_dsp_synthesis(vorbis_dsp_state *vd, ogg_packet *op, int decode
 extern int vorbis_dsp_pcmout(vorbis_dsp_state *v, int16_t *pcm, int samples);
 extern int vorbis_dsp_read(vorbis_dsp_state *v, int samples);
 extern int32_t vorbis_packet_blocksize(vorbis_info *vi, ogg_packet *op);
-extern int ov_open(FILE *f,OggVorbis_File *vf,char *initial,long ibytes);
+extern int ov_open(FILE *f,OggVorbis_File *vf,char *initial,int32_t ibytes);
 extern vorbis_comment *ov_comment(OggVorbis_File *vf,int link);
-extern long ov_read(OggVorbis_File *vf,void *buffer,int length);
+extern int32_t ov_read(OggVorbis_File *vf,void *buffer,int length);
 extern vorbis_info *ov_info(OggVorbis_File *vf,int link);
 extern int64_t ov_pcm_total(OggVorbis_File *vf,int i);
 extern int ov_clear(OggVorbis_File *vf);

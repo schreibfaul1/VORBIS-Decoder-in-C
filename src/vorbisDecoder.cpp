@@ -94,18 +94,18 @@ const uint16_t barklook[54] = { 0, 51, 102, 154, 206, 258, 311, 365, 420,
 		3756, 4106, 4493, 4919, 5387, 5901, 6466, 7094, 7798, 8599, 9528, 10623,
 		11935, 13524, 15453, 17775, 20517, 23667, 27183, 31004 };
 
-const unsigned char MLOOP_1[64] = { 0, 10, 11, 11, 12, 12, 12, 12, 13,
+const uint8_t MLOOP_1[64] = { 0, 10, 11, 11, 12, 12, 12, 12, 13,
 		13, 13, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14,
 		14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
 		15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
 		15, };
 
-const unsigned char MLOOP_2[64] = { 0, 4, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7,
+const uint8_t MLOOP_2[64] = { 0, 4, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7,
 		7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9,
 		9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
 		9, 9, 9, 9, };
 
-const unsigned char MLOOP_3[8] = { 0, 1, 2, 2, 3, 3, 3, 3 };
+const uint8_t MLOOP_3[8] = { 0, 1, 2, 2, 3, 3, 3, 3 };
 
 /* interpolated 1./sqrt(p) where .5 <= a < 1. (.100000... to .111111...) in
  16.16 format returns in m.8 format */
@@ -162,7 +162,7 @@ int32_t oggpack_look(oggpack_buffer *b, int bits) {
 
 	if (bits >= b->headend << 3) {
 		int end = b->headend;
-		unsigned char *ptr = b->headptr;
+		uint8_t *ptr = b->headptr;
 		ogg_reference *head = b->head;
 
 		if (end < 0)
@@ -447,7 +447,7 @@ int _make_decode_table(codebook *s, char *lengthlist, int32_t quantvals, oggpack
 		switch (s->dec_nodeb) {
 		case 1:
 			for (i = 0; i < s->used_entries * 2 - 2; i++)
-				((unsigned char*) s->dec_table)[i] = ((work[i] & 0x80000000UL)
+				((uint8_t*) s->dec_table)[i] = ((work[i] & 0x80000000UL)
 						>> 24) | work[i];
 			break;
 		case 2:
@@ -462,7 +462,7 @@ int _make_decode_table(codebook *s, char *lengthlist, int32_t quantvals, oggpack
 		 node indexing. */
 		int32_t top = s->used_entries * 3 - 2;
 		if (s->dec_nodeb == 1) {
-			unsigned char *out = (unsigned char*) s->dec_table;
+			uint8_t *out = (uint8_t*) s->dec_table;
 
 			for (i = s->used_entries * 2 - 4; i >= 0; i -= 2) {
 				if (work[i] & 0x80000000UL) {
@@ -729,7 +729,7 @@ int vorbis_book_unpack(oggpack_buffer *opb, codebook *s) {
 				if (s->q_bits <= 8) {
 					s->q_val = malloc(quantvals);
 					for (i = 0; i < quantvals; i++)
-						((unsigned char*) s->q_val)[i] = oggpack_read(opb,
+						((uint8_t*) s->q_val)[i] = oggpack_read(opb,
 								s->q_bits);
 				} else {
 					s->q_val = malloc(quantvals * 2);
@@ -787,7 +787,7 @@ int vorbis_book_unpack(oggpack_buffer *opb, codebook *s) {
 
 			if (s->q_bits <= 8) {
 				for (i = 0; i < s->used_entries * s->dim; i++)
-					((unsigned char*) (s->q_val))[i] = oggpack_read(opb,
+					((uint8_t*) (s->q_val))[i] = oggpack_read(opb,
 							s->q_bits);
 			} else {
 				for (i = 0; i < s->used_entries * s->dim; i++)
@@ -825,7 +825,7 @@ uint32_t decode_packed_entry_number(codebook *book,	oggpack_buffer *b) {
 		if (book->dec_leafw == 1) {
 
 			/* 8/8 */
-			unsigned char *t = (unsigned char*) book->dec_table;
+			uint8_t *t = (uint8_t*) book->dec_table;
 			for (i = 0; i < read; i++) {
 				chase = t[chase * 2 + ((lok >> i) & 1)];
 				if (chase & 0x80UL)
@@ -836,7 +836,7 @@ uint32_t decode_packed_entry_number(codebook *book,	oggpack_buffer *b) {
 		} else {
 
 			/* 8/16 */
-			unsigned char *t = (unsigned char*) book->dec_table;
+			uint8_t *t = (uint8_t*) book->dec_table;
 			for (i = 0; i < read; i++) {
 				int bit = (lok >> i) & 1;
 				int next = t[chase + bit];
@@ -932,7 +932,7 @@ int decode_map(codebook *s, oggpack_buffer *b, int32_t *v, int point) {
 		int mask = (1 << s->q_pack) - 1;
 		for (i = 0; i < s->dim; i++) {
 			if (s->q_bits <= 8)
-				v[i] = ((unsigned char*) (s->q_val))[entry & mask];
+				v[i] = ((uint8_t*) (s->q_val))[entry & mask];
 			else
 				v[i] = ((uint16_t*) (s->q_val))[entry & mask];
 			entry >>= s->q_pack;
@@ -945,7 +945,7 @@ int decode_map(codebook *s, oggpack_buffer *b, int32_t *v, int point) {
 
 		if (s->q_bits <= 8) {
 			for (i = 0; i < s->dim; i++)
-				v[i] = ((unsigned char*) ptr)[i];
+				v[i] = ((uint8_t*) ptr)[i];
 		} else {
 			for (i = 0; i < s->dim; i++)
 				v[i] = ((uint16_t*) ptr)[i];
@@ -1337,7 +1337,7 @@ int vorbis_dsp_synthesis(vorbis_dsp_state *vd, ogg_packet *op, int decodep) {
 /* interpolated lookup based fromdB function, domain -140dB to 0dB only */
 /* a is in n.12 format */
 
-int32_t vorbis_fromdBlook_i(long a) {
+int32_t vorbis_fromdBlook_i(int32_t a) {
 	if (a > 0)
 		return 0x7fffffff;
 	if (a < (-140 << 12))
@@ -1376,7 +1376,7 @@ void render_line(int n, int x0, int x1, int y0, int y1, int32_t *d) {
 //-------------------------------------------------------------------------------------------------
 /* interpolated lookup based cos function, domain 0 to PI only */
 /* a is in 0.16 format, where 0==0, 2^^16-1==PI, return 0.14 */
-int32_t vorbis_coslook_i(long a) {
+int32_t vorbis_coslook_i(int32_t a) {
 	int i = a >> COS_LOOKUP_I_SHIFT;
 	int d = a & COS_LOOKUP_I_MASK;
 	return COS_LOOKUP_I[i] - ((d * (COS_LOOKUP_I[i] - COS_LOOKUP_I[i + 1])) >>
@@ -1385,7 +1385,7 @@ int32_t vorbis_coslook_i(long a) {
 //-------------------------------------------------------------------------------------------------
 /* interpolated half-wave lookup based cos function */
 /* a is in 0.16 format, where 0==0, 2^^16==PI, return .LSP_FRACBITS */
-int32_t vorbis_coslook2_i(long a) {
+int32_t vorbis_coslook2_i(int32_t a) {
 	int i = a >> COS_LOOKUP_I_SHIFT;
 	int d = a & COS_LOOKUP_I_MASK;
 	return ((COS_LOOKUP_I[i] << COS_LOOKUP_I_SHIFT)
@@ -1409,7 +1409,7 @@ int32_t toBARK(int n) {
 	}
 }
 //-------------------------------------------------------------------------------------------------
-int32_t vorbis_invsqlook_i(long a, long e) {
+int32_t vorbis_invsqlook_i(int32_t a, int32_t e) {
 	long i = (a & 0x7fff) >> (INVSQ_LOOKUP_I_SHIFT - 1);
 	long d = a & INVSQ_LOOKUP_I_MASK; /*  0.10 */
 	long val = INVSQ_LOOKUP_I[i] - /*  1.16 */
@@ -1683,4 +1683,311 @@ int floor0_inverse2(vorbis_dsp_state *vd, vorbis_info_floor *i, int32_t *lsp, in
 	return (0);
 }
 
+//-------------------------------------------------------------------------------------------------
+void floor1_free_info(vorbis_info_floor *i) {
+	vorbis_info_floor1 *info = (vorbis_info_floor1*) i;
+	if (info) {
+		if (info->_class)
+			free(info->_class);
+		if (info->partitionclass)
+			free(info->partitionclass);
+		if (info->postlist)
+			free(info->postlist);
+		if (info->forward_index)
+			free(info->forward_index);
+		if (info->hineighbor)
+			free(info->hineighbor);
+		if (info->loneighbor)
+			free(info->loneighbor);
+		memset(info, 0, sizeof(*info));
+		free(info);
+	}
+}
+//-------------------------------------------------------------------------------------------------
+void vorbis_mergesort(uint8_t *index, uint16_t *vals, uint16_t n) {
+	uint16_t i, j;
+	uint8_t *temp;
+	uint8_t *A = index;
+	uint8_t *B = (uint8_t*)malloc(n * sizeof(*B));
+
+	for (i = 1; i < n; i <<= 1) {
+		for (j = 0; j + i < n;) {
+			uint16_t k1 = j;
+			uint16_t mid = j + i;
+			uint16_t k2 = mid;
+			int end = (j + i * 2 < n ? j + i * 2 : n);
+			while (k1 < mid && k2 < end) {
+				if (vals[A[k1]] < vals[A[k2]])
+					B[j++] = A[k1++];
+				else
+					B[j++] = A[k2++];
+			}
+			while (k1 < mid)
+				B[j++] = A[k1++];
+			while (k2 < end)
+				B[j++] = A[k2++];
+		}
+		for (; j < n; j++)
+			B[j] = A[j];
+		temp = A;
+		A = B;
+		B = temp;
+	}
+
+	if (B == index) {
+		for (j = 0; j < n; j++)
+			B[j] = A[j];
+		free(A);
+	} else
+		free(B);
+}
+
+//-------------------------------------------------------------------------------------------------
+vorbis_info_floor* floor1_info_unpack(vorbis_info *vi, oggpack_buffer *opb) {
+	codec_setup_info *ci = (codec_setup_info*) vi->codec_setup;
+	int j, k, count = 0, maxclass = -1, rangebits;
+
+	vorbis_info_floor1 *info = (vorbis_info_floor1*) calloc(1, sizeof(*info));
+	/* read partitions */
+	info->partitions = oggpack_read(opb, 5); /* only 0 to 31 legal */
+	info->partitionclass = (uint8_t*) malloc(
+			info->partitions * sizeof(*info->partitionclass));
+	for (j = 0; j < info->partitions; j++) {
+		info->partitionclass[j] = oggpack_read(opb, 4); /* only 0 to 15 legal */
+		if (maxclass < info->partitionclass[j])
+			maxclass = info->partitionclass[j];
+	}
+
+	/* read partition classes */
+	info->_class = (floor1class*) malloc(
+			(maxclass + 1) * sizeof(*info->_class));
+	for (j = 0; j < maxclass + 1; j++) {
+		info->_class[j].class_dim = oggpack_read(opb, 3) + 1; /* 1 to 8 */
+		info->_class[j].class_subs = oggpack_read(opb, 2); /* 0,1,2,3 bits */
+		if (oggpack_eop(opb) < 0)
+			goto err_out;
+		if (info->_class[j].class_subs)
+			info->_class[j].class_book = oggpack_read(opb, 8);
+		else
+			info->_class[j].class_book = 0;
+		if (info->_class[j].class_book >= ci->books)
+			goto err_out;
+		for (k = 0; k < (1 << info->_class[j].class_subs); k++) {
+			info->_class[j].class_subbook[k] = oggpack_read(opb, 8) - 1;
+			if (info->_class[j].class_subbook[k] >= ci->books
+					&& info->_class[j].class_subbook[k] != 0xff)
+				goto err_out;
+		}
+	}
+
+	/* read the post list */
+	info->mult = oggpack_read(opb, 2) + 1; /* only 1,2,3,4 legal now */
+	rangebits = oggpack_read(opb, 4);
+
+	for (j = 0, k = 0; j < info->partitions; j++)
+		count += info->_class[info->partitionclass[j]].class_dim;
+	info->postlist = (uint16_t*) malloc((count + 2) * sizeof(*info->postlist));
+	info->forward_index = (uint8_t*) malloc(
+			(count + 2) * sizeof(*info->forward_index));
+	info->loneighbor = (uint8_t*) malloc(
+			count * sizeof(*info->loneighbor));
+	info->hineighbor = (uint8_t*) malloc(
+			count * sizeof(*info->hineighbor));
+
+	count = 0;
+	for (j = 0, k = 0; j < info->partitions; j++) {
+		count += info->_class[info->partitionclass[j]].class_dim;
+		if (count > VIF_POSIT)
+			goto err_out;
+		for (; k < count; k++) {
+			int t = info->postlist[k + 2] = oggpack_read(opb, rangebits);
+			if (t >= (1 << rangebits))
+				goto err_out;
+		}
+	}
+	if (oggpack_eop(opb))
+		goto err_out;
+	info->postlist[0] = 0;
+	info->postlist[1] = 1 << rangebits;
+	info->posts = count + 2;
+
+	/* also store a sorted position index */
+	for (j = 0; j < info->posts; j++)
+		info->forward_index[j] = j;
+	vorbis_mergesort(info->forward_index, info->postlist, info->posts);
+
+	/* discover our neighbors for decode where we don't use fit flags
+	 (that would push the neighbors outward) */
+	for (j = 0; j < info->posts - 2; j++) {
+		int lo = 0;
+		int hi = 1;
+		int lx = 0;
+		int hx = info->postlist[1];
+		int currentx = info->postlist[j + 2];
+		for (k = 0; k < j + 2; k++) {
+			int x = info->postlist[k];
+			if (x > lx && x < currentx) {
+				lo = k;
+				lx = x;
+			}
+			if (x < hx && x > currentx) {
+				hi = k;
+				hx = x;
+			}
+		}
+		info->loneighbor[j] = lo;
+		info->hineighbor[j] = hi;
+	}
+
+	return (info);
+
+	err_out: floor1_free_info(info);
+	return (NULL);
+}
+//-------------------------------------------------------------------------------------------------
+int render_point(int x0, int x1, int y0, int y1, int x) {
+	y0 &= 0x7fff; /* mask off flag */
+	y1 &= 0x7fff;
+
+	{
+		int dy = y1 - y0;
+		int adx = x1 - x0;
+		int ady = abs(dy);
+		int err = ady * (x - x0);
+
+		int off = err / adx;
+		if (dy < 0)
+			return (y0 - off);
+		return (y0 + off);
+	}
+}
+
+//-------------------------------------------------------------------------------------------------
+int floor1_memosize(vorbis_info_floor *i) {
+	vorbis_info_floor1 *info = (vorbis_info_floor1*) i;
+	return info->posts;
+}
+//-------------------------------------------------------------------------------------------------
+int quant_look[4] = { 256, 128, 86, 64 };
+
+int32_t* floor1_inverse1(vorbis_dsp_state *vd, vorbis_info_floor *in, int32_t *fit_value) {
+	vorbis_info_floor1 *info = (vorbis_info_floor1*) in;
+	codec_setup_info *ci = (codec_setup_info*) vd->vi->codec_setup;
+
+	int i, j, k;
+	codebook *books = ci->book_param;
+	int quant_q = quant_look[info->mult - 1];
+
+	/* unpack wrapped/predicted values from stream */
+	if (oggpack_read(&vd->opb, 1) == 1) {
+		fit_value[0] = oggpack_read(&vd->opb, ilog(quant_q - 1));
+		fit_value[1] = oggpack_read(&vd->opb, ilog(quant_q - 1));
+
+		/* partition by partition */
+		/* partition by partition */
+		for (i = 0, j = 2; i < info->partitions; i++) {
+			int classv = info->partitionclass[i];
+			int cdim = info->_class[classv].class_dim;
+			int csubbits = info->_class[classv].class_subs;
+			int csub = 1 << csubbits;
+			int cval = 0;
+
+			/* decode the partition's first stage cascade value */
+			if (csubbits) {
+				cval = vorbis_book_decode(
+						books + info->_class[classv].class_book, &vd->opb);
+
+				if (cval == -1)
+					goto eop;
+			}
+
+			for (k = 0; k < cdim; k++) {
+				int book = info->_class[classv].class_subbook[cval & (csub - 1)];
+				cval >>= csubbits;
+				if (book != 0xff) {
+					if ((fit_value[j + k] = vorbis_book_decode(books + book,
+							&vd->opb)) == -1)
+						goto eop;
+				} else {
+					fit_value[j + k] = 0;
+				}
+			}
+			j += cdim;
+		}
+
+		/* unwrap positive values and reconsitute via linear interpolation */
+		for (i = 2; i < info->posts; i++) {
+			int predicted = render_point(
+					info->postlist[info->loneighbor[i - 2]],
+					info->postlist[info->hineighbor[i - 2]],
+					fit_value[info->loneighbor[i - 2]],
+					fit_value[info->hineighbor[i - 2]], info->postlist[i]);
+			int hiroom = quant_q - predicted;
+			int loroom = predicted;
+			int room = (hiroom < loroom ? hiroom : loroom) << 1;
+			int val = fit_value[i];
+
+			if (val) {
+				if (val >= room) {
+					if (hiroom > loroom) {
+						val = val - loroom;
+					} else {
+						val = -1 - (val - hiroom);
+					}
+				} else {
+					if (val & 1) {
+						val = -((val + 1) >> 1);
+					} else {
+						val >>= 1;
+					}
+				}
+
+				fit_value[i] = val + predicted;
+				fit_value[info->loneighbor[i - 2]] &= 0x7fff;
+				fit_value[info->hineighbor[i - 2]] &= 0x7fff;
+
+			} else {
+				fit_value[i] = predicted | 0x8000;
+			}
+
+		}
+
+		return (fit_value);
+	}
+	eop: return (NULL);
+}
+//-------------------------------------------------------------------------------------------------
+int floor1_inverse2(vorbis_dsp_state *vd, vorbis_info_floor *in, int32_t *fit_value, int32_t *out) {
+	vorbis_info_floor1 *info = (vorbis_info_floor1*) in;
+
+	codec_setup_info *ci = (codec_setup_info*) vd->vi->codec_setup;
+	int n = ci->blocksizes[vd->W] / 2;
+	int j;
+
+	if (fit_value) {
+		/* render the lines */
+		int hx = 0;
+		int lx = 0;
+		int ly = fit_value[0] * info->mult;
+		for (j = 1; j < info->posts; j++) {
+			int current = info->forward_index[j];
+			int hy = fit_value[current] & 0x7fff;
+			if (hy == fit_value[current]) {
+
+				hy *= info->mult;
+				hx = info->postlist[current];
+
+				render_line(n, lx, hx, ly, hy, out);
+
+				lx = hx;
+				ly = hy;
+			}
+		}
+		for (j = hx; j < n; j++)
+			out[j] *= ly; /* be certain */
+		return (1);
+	}
+	memset(out, 0, sizeof(*out) * n);
+	return (0);
+}
 

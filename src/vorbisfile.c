@@ -785,10 +785,10 @@ int ov_open_callbacks(void *f,OggVorbis_File *vf,char *initial,long ibytes,
   return _ov_open2(vf);
 }
 
-int ov_open(FILE *f, OggVorbis_File *vf, char *initial, long ibytes) {
+int ov_open(FILE *f, OggVorbis_File *vf, char *initial, int32_t ibytes) {
 	ov_callbacks callbacks = { (size_t (*)(void*, size_t, size_t, void*)) fread,
 			(int (*)(void*, int64_t, int)) _fseek64_wrap,
-			(int (*)(void*)) fclose, (long (*)(void*)) ftell };
+			(int (*)(void*)) fclose, (int32_t (*)(void*)) ftell };
 
 	return ov_open_callbacks((void*) f, vf, initial, ibytes, callbacks);
 }
@@ -809,7 +809,7 @@ int ov_test(FILE *f,OggVorbis_File *vf,char *initial,long ibytes){
     (size_t (*)(void *, size_t, size_t, void *))  fread,
     (int (*)(void *, int64_t, int))              _fseek64_wrap,
     (int (*)(void *))                             fclose,
-    (long (*)(void *))                            ftell
+    (int32_t (*)(void *))                            ftell
   };
 
   return ov_test_callbacks((void *)f, vf, initial, ibytes, callbacks);
@@ -1545,7 +1545,7 @@ vorbis_comment *ov_comment(OggVorbis_File *vf,int link){
 
 	    *section) set to the logical bitstream number */
 
-long ov_read(OggVorbis_File *vf,void *buffer,int bytes_req){
+int32_t ov_read(OggVorbis_File *vf,void *buffer,int bytes_req){
 
   long samples;
   long channels;

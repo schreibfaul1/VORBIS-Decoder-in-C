@@ -33,7 +33,7 @@ int main() {
     	fprintf(stderr,"%s\n",*ptr);
     	++ptr;
     }
-    fprintf(stderr,"\nBitstream is %d channel, %ldHz\n",vi->channels,vi->rate);
+    fprintf(stderr,"\nBitstream is %d channel, %idHz\n",vi->channels,vi->rate);
     fprintf(stderr,"\nDecoded length: %ld samples\n", (long)ov_pcm_total(&vf,-1));
     fprintf(stderr,"Encoded by: %s\n\n",ov_comment(&vf,-1)->vendor);
 
