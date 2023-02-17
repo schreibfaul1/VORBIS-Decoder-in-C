@@ -107,33 +107,6 @@ static void ogg_buffer_mark(ogg_reference_t *or) {
 	}
 }
 
-/* duplicate a reference (pointing to the same actual buffer memory)
- and increment buffer refcount.  If the desired segment is zero
- length, a zero length ref is returned. */
-static ogg_reference_t* ogg_buffer_sub(ogg_reference_t *or, long length) {
-	ogg_reference_t *ret = 0, *head = 0;
-
-	/* duplicate the reference chain; increment refcounts */
-	while (or && length) {
-		ogg_reference_t *temp = _fetch_ref(or->buffer->ptr.owner);
-		if (head)
-			head->next = temp;
-		else
-			ret = temp;
-		head = temp;
-		head->buffer = or->buffer;
-		head->begin = or->begin;
-		head->length = length;
-		if (head->length > or->length)
-			head->length = or->length;
-
-		length -= head->length;
-		or = or->next;
-	}
-
-	ogg_buffer_mark(ret);
-	return ret;
-}
 
 ogg_reference_t* ogg_buffer_dup(ogg_reference_t *or) {
 	ogg_reference_t *ret = 0, *head = 0;
@@ -161,7 +134,6 @@ ogg_reference_t* ogg_buffer_dup(ogg_reference_t *or) {
  'head/tail' are NULL */
 static ogg_reference_t* ogg_buffer_split(ogg_reference_t **tail,
 		ogg_reference_t **head, long pos) {
-
 	/* walk past any preceeding fragments to one of:
 	 a) the exact boundary that seps two fragments
 	 b) the fragment that needs split somewhere in the middle */
@@ -465,33 +437,6 @@ uint32_t ogg_page_pageno(ogg_page *og) {
  the leading packet is begun on a previous page, but ends on this
  page, it's counted */
 
-/* NOTE:
- If a page consists of a packet begun on a previous page, and a new
- packet begun (but not completed) on this page, the return will be:
- ogg_page_packets(page)   ==1,
- ogg_page_continued(page) !=0
-
- If a page happens to be a single packet that was begun on a
- previous page, and spans to the next page (in the case of a three or
- more page packet), the return will be:
- ogg_page_packets(page)   ==0,
- ogg_page_continued(page) !=0
- */
-
-int ogg_page_packets(ogg_page *og) {
-	int i;
-	int n;
-	int count = 0;
-	oggbyte_buffer_t ob;
-	oggbyte_init(&ob, og->header);
-
-	n = oggbyte_read1(&ob, 26);
-	for (i = 0; i < n; i++)
-		if (oggbyte_read1(&ob, 27 + i) < 255)
-			count++;
-	return (count);
-}
-
 /* Static CRC calculation table.  See older code in CVS for dead
  run-time initialization code. */
 
@@ -765,48 +710,8 @@ long ogg_sync_pageseek(ogg_sync_state_t *oy, ogg_page *og) {
 	sync_out: return ret;
 }
 
-/* sync the stream and get a page.  Keep trying until we find a page.
- Supress 'sync errors' after reporting the first.
-
- return values:
- OGG_HOLE) recapture (hole in data)
- 0) need more data
- 1) page returned
-
- Returns pointers into buffered data; invalidated by next call to
- _stream, _clear, _init, or _buffer */
-
-int ogg_sync_pageout(ogg_sync_state_t *oy, ogg_page *og) {
-
-	/* all we need to do is verify a page at the head of the stream
-	 buffer.  If it doesn't verify, we look for the next potential
-	 frame */
-
-	while (1) {
-		long ret = ogg_sync_pageseek(oy, og);
-		if (ret > 0) {
-			/* have a page */
-			return 1;
-		}
-		if (ret == 0) {
-			/* need more data */
-			return 0;
-		}
-
-		/* head did not start a synced page... skipped some bytes */
-		if (!oy->unsynced) {
-			oy->unsynced = 1;
-			return OGG_HOLE;
-		}
-
-		/* loop. keep looking */
-
-	}
-}
-
 /* clear things to an initial state.  Good to call, eg, before seeking */
 int ogg_sync_reset(ogg_sync_state_t *oy) {
-
 	ogg_buffer_release(oy->fifo_tail);
 	oy->fifo_tail = 0;
 	oy->fifo_head = 0;
@@ -952,7 +857,6 @@ static void _span_queued_page(ogg_stream_state_t *os) {
  into packet segments here as well. */
 
 int ogg_stream_pagein(ogg_stream_state_t *os, ogg_page *og) {
-
 	int serialno = ogg_page_serialno(og);
 	int version = ogg_page_version(og);
 
@@ -1017,7 +921,6 @@ int ogg_stream_reset_serialno(ogg_stream_state_t *os, int serialno) {
 }
 
 static int _packetout(ogg_stream_state_t *os, ogg_packet *op, int adv) {
-
 	ogg_packet_release(op);
 	_span_queued_page(os);
 
@@ -1082,11 +985,6 @@ static int _packetout(ogg_stream_state_t *os, ogg_packet *op, int adv) {
 		/* update lacing pointers */
 		os->body_fill = os->body_fill_next;
 		_next_lace(&ob, os);
-	} else {
-		if (op) {
-			op->packet = ogg_buffer_sub(os->body_tail, os->body_fill & FINMASK);
-			op->bytes = os->body_fill & FINMASK;
-		}
 	}
 
 	if (adv) {

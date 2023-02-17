@@ -31,7 +31,7 @@
 #define  LINKSET   4 /* serialno and link set to current link */
 #define  INITSET   5
 
-int ov_raw_seek(OggVorbis_File *vf, int64_t pos); // proto
+//int ov_raw_seek(OggVorbis_File *vf, int64_t pos); // proto
 
 /* A 'chained bitstream' is a Vorbis bitstream that contains more than
  one logical bitstream arranged end to end (the only form of Ogg
@@ -771,7 +771,6 @@ int ov_open(FILE *f, OggVorbis_File *vf, char *initial, int32_t ibytes) {
 	ov_callbacks callbacks = { (size_t (*)(void*, size_t, size_t, void*)) fread,
 			(int (*)(void*, int64_t, int)) _fseek64_wrap,
 			(int (*)(void*)) fclose, (int32_t (*)(void*)) ftell };
-
 	return ov_open_callbacks((void*) f, vf, initial, ibytes, callbacks);
 }
 
@@ -1167,36 +1166,6 @@ int ov_pcm_seek(OggVorbis_File *vf, int64_t pos) {
 	ogg_page_release(&og);
 	ogg_packet_release(&op);
 	return 0;
-}
-/* return PCM offset (sample) of next PCM sample to be read */
-int64_t ov_pcm_tell(OggVorbis_File *vf) {
-	if (vf->ready_state < OPENED)
-		return OV_EINVAL;
-	return vf->pcm_offset;
-}
-
-/* return time offset (milliseconds) of next PCM sample to be read */
-int64_t ov_time_tell(OggVorbis_File *vf) {
-	int link = 0;
-	int64_t pcm_total = 0;
-	int64_t time_total = 0;
-
-	if (vf->ready_state < OPENED)
-		return OV_EINVAL;
-	if (vf->seekable) {
-		pcm_total = ov_pcm_total(vf, -1);
-		time_total = ov_time_total(vf, -1);
-
-		/* which bitstream section does this time offset occur in? */
-		for (link = vf->links - 1; link >= 0; link--) {
-			pcm_total -= vf->pcmlengths[link * 2 + 1];
-			time_total -= ov_time_total(vf, link);
-			if (vf->pcm_offset >= pcm_total)
-				break;
-		}
-	}
-
-	return time_total + (1000 * vf->pcm_offset - pcm_total) / vf->vi.rate;
 }
 
 /*  link:   -1) return the vorbis_info struct for the bitstream section
