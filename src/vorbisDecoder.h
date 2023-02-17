@@ -263,43 +263,9 @@ int render_point(int x0, int x1, int y0, int y1, int x);
 int floor1_memosize(vorbis_info_floor *i);
 int32_t* floor1_inverse1(vorbis_dsp_state *vd, vorbis_info_floor *in, int32_t *fit_value);
 int floor1_inverse2(vorbis_dsp_state *vd, vorbis_info_floor *in, int32_t *fit_value, int32_t *out);
-
-
-
-
-
-
-
-
-extern int mapping_info_unpack(vorbis_info_mapping*, vorbis_info*,	oggpack_buffer*);
-extern void mapping_clear_info(vorbis_info_mapping*);
-extern int mapping_inverse(struct vorbis_dsp_state*, vorbis_info_mapping*);
-extern void res_clear_info(vorbis_info_residue *info);
-extern int res_unpack(vorbis_info_residue *info, vorbis_info *vi, oggpack_buffer *opb);
-extern int res_inverse(vorbis_dsp_state*, vorbis_info_residue *info, int32_t **in, int *nonzero, int ch);
-
-extern int32_t vorbis_packet_blocksize(vorbis_info *vi, ogg_packet *op);
-extern int ov_open(FILE *f,OggVorbis_File *vf,char *initial,int32_t ibytes);
-extern vorbis_comment *ov_comment(OggVorbis_File *vf,int link);
-extern int32_t ov_read(OggVorbis_File *vf,void *buffer,int length);
-extern vorbis_info *ov_info(OggVorbis_File *vf,int link);
-extern int64_t ov_pcm_total(OggVorbis_File *vf,int i);
-extern int ov_clear(OggVorbis_File *vf);
-extern int64_t ov_time_total(OggVorbis_File *vf,int i);
-extern void vorbis_info_clear(vorbis_info *vi);
-extern void vorbis_comment_clear(vorbis_comment *vc);
-extern void vorbis_info_init(vorbis_info *vi);
-extern void vorbis_comment_init(vorbis_comment *vc);
-extern int ov_raw_seek(OggVorbis_File *vf,int64_t pos);
-extern int vorbis_info_blocksize(vorbis_info *vi,int zo);
-extern void mdct_shift_right(int n, int32_t *in, int32_t *right);
-extern void mdct_unroll_lap(int n0,int n1, int lW,int W,
-			    int32_t *in, int32_t *right,
-			    const int32_t *w0,
-				const int32_t *w1,
-			    int16_t *out,
-			    int step,
-			    int start,int end /* samples, this frame */);
+void mapping_clear_info(vorbis_info_mapping *info);
+int mapping_info_unpack(vorbis_info_mapping *info, vorbis_info *vi,	oggpack_buffer *opb);
+int mapping_inverse(vorbis_dsp_state *vd, vorbis_info_mapping *info);
 void _v_readstring(oggpack_buffer *o, char *buf, int bytes);
 void vorbis_comment_init(vorbis_comment *vc);
 int tagcompare(const char *s1, const char *s2, int n);
@@ -314,6 +280,36 @@ int _vorbis_unpack_comment(vorbis_comment *vc, oggpack_buffer *opb);
 int _vorbis_unpack_books(vorbis_info *vi, oggpack_buffer *opb);
 int vorbis_dsp_headerin(vorbis_info *vi, vorbis_comment *vc, ogg_packet *op);
 
+
+
+
+
+//extern int mapping_info_unpack(vorbis_info_mapping*, vorbis_info*,	oggpack_buffer*);
+//extern void mapping_clear_info(vorbis_info_mapping*);
+//extern int mapping_inverse(struct vorbis_dsp_state*, vorbis_info_mapping*);
+extern void res_clear_info(vorbis_info_residue *info);
+extern int res_unpack(vorbis_info_residue *info, vorbis_info *vi, oggpack_buffer *opb);
+extern int res_inverse(vorbis_dsp_state*, vorbis_info_residue *info, int32_t **in, int *nonzero, int ch);
+
+//extern int32_t vorbis_packet_blocksize(vorbis_info *vi, ogg_packet *op);
+extern int ov_open(FILE *f,OggVorbis_File *vf,char *initial,int32_t ibytes);
+extern vorbis_comment *ov_comment(OggVorbis_File *vf,int link);
+extern int32_t ov_read(OggVorbis_File *vf,void *buffer,int length);
+extern vorbis_info *ov_info(OggVorbis_File *vf,int link);
+extern int64_t ov_pcm_total(OggVorbis_File *vf,int i);
+extern int ov_clear(OggVorbis_File *vf);
+extern int64_t ov_time_total(OggVorbis_File *vf,int i);
+extern void vorbis_info_clear(vorbis_info *vi);
+extern void mdct_shift_right(int n, int32_t *in, int32_t *right);
+extern void mdct_unroll_lap(int n0,int n1, int lW,int W,
+			    int32_t *in, int32_t *right,
+			    const int32_t *w0,
+				const int32_t *w1,
+			    int16_t *out,
+			    int step,
+			    int start,int end /* samples, this frame */);
+
+extern void mdct_backward(int n, int32_t *in);
 
 
 
