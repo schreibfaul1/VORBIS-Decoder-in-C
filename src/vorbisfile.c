@@ -22,7 +22,6 @@
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
-#include "os.h"
 #include "misc.h"
 
 #define  NOTOPEN   0

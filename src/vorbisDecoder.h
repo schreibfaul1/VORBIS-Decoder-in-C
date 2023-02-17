@@ -33,6 +33,14 @@
 #define floor1_rangedB 140 /* floor 1 fixed at -140dB to 0dB range */
 #define VIF_POSIT 63
 
+#ifndef min
+#define min(x,y)  ((x)>(y)?(y):(x))
+#endif
+
+#ifndef max
+#  define max(x,y)  ((x)<(y)?(y):(x))
+#endif
+
 #define _lookspan()   while(!end){\
                         head=head->next;\
                         if(!head) return -1;\
@@ -333,6 +341,10 @@ void mdct_shift_right(int n, int32_t *in, int32_t *right);
 void mdct_unroll_lap(int n0, int n1, int lW, int W, int *in, int *right,
 		const int *w0, const int *w1, short int *out, int step, int start, /* samples, this frame */
 		int end /* samples, this frame */);
+void res_clear_info(vorbis_info_residue *info);
+int res_unpack(vorbis_info_residue *info, vorbis_info *vi, oggpack_buffer *opb);
+int res_inverse(vorbis_dsp_state *vd, vorbis_info_residue *info, int32_t **in, int *nonzero, int ch);
+
 
 
 
