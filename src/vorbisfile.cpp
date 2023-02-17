@@ -242,21 +242,6 @@ int _bisect_forward_serialno(OggVorbis_File *vf, int64_t begin,	int64_t searched
 	return 0;
 }
 //-------------------------------------------------------------------------------------------------
-int _decode_clear(OggVorbis_File *vf) {
-	if (vf->ready_state == INITSET) {
-		vorbis_dsp_destroy(vf->vd);
-		vf->vd = 0;
-		vf->ready_state = STREAMSET;
-	}
-
-	if (vf->ready_state >= STREAMSET) {
-		vorbis_info_clear(&vf->vi);
-		vorbis_comment_clear(&vf->vc);
-		vf->ready_state = OPENED;
-	}
-	return 0;
-}
-//-------------------------------------------------------------------------------------------------
 /* uses the local ogg_stream storage in vf; this is important for
  non-streaming input sources */
 /* consumes the page that's passed in (if any) */
@@ -266,9 +251,6 @@ int _fetch_headers(OggVorbis_File *vf, vorbis_info *vi,	vorbis_comment *vc, uint
 	ogg_page og = { 0, 0, 0, 0 };
 	ogg_packet op = { 0, 0, 0, 0, 0, 0 };
 	int i, ret;
-
-	if (vf->ready_state > OPENED)
-		_decode_clear(vf);
 
 	if (!og_ptr) {
 		int64_t llret = _get_next_page(vf, &og, CHUNKSIZE);
@@ -330,8 +312,6 @@ int _fetch_headers(OggVorbis_File *vf, vorbis_info *vi,	vorbis_comment *vc, uint
  codec_setup) structs.  Call this to seek and fetch the info from
  the bitstream, if needed */
 int _set_link_number(OggVorbis_File *vf, int link) {
-	if (link != vf->current_link)
-		_decode_clear(vf);
 	if (vf->ready_state < STREAMSET) {
 		_seek_helper(vf, vf->offsets[link]);
 		ogg_stream_reset_serialno(vf->os, vf->serialnos[link]);
@@ -339,17 +319,6 @@ int _set_link_number(OggVorbis_File *vf, int link) {
 		vf->current_link = link;
 		return _fetch_headers(vf, &vf->vi, &vf->vc, &vf->current_serialno, NULL);
 	}
-	return 0;
-}
-//-------------------------------------------------------------------------------------------------
-int _set_link_number_preserve_pos(OggVorbis_File *vf, int link) {
-	int64_t pos = vf->offset;
-	int ret = _set_link_number(vf, link);
-	if (ret)
-		return ret;
-	_seek_helper(vf, pos);
-	if (pos < vf->offsets[link] || pos >= vf->offsets[link + 1])
-		vf->ready_state = STREAMSET;
 	return 0;
 }
 //-------------------------------------------------------------------------------------------------
@@ -474,9 +443,6 @@ int _make_decode_ready(OggVorbis_File *vf) {
 				break;
 		if (i == vf->links)
 			return -1;
-		i = _set_link_number_preserve_pos(vf, i);
-		if (i)
-			return i; // @suppress("No break at end of case")
 		/* fall through */
 	case LINKSET:
 		vf->vd = vorbis_dsp_create(&vf->vi);
@@ -642,8 +608,6 @@ int _fetch_and_process_packet(OggVorbis_File *vf, int readp, int spanp) {
 						ret = OV_EOF;
 						goto cleanup;
 					}
-
-					_decode_clear(vf);
 				}
 			}
 		}
@@ -1101,10 +1065,6 @@ int ov_raw_seek(OggVorbis_File *vf, int64_t pos) {
 
 			/* did we just grab a page from other than current link? */
 			if (vf->ready_state >= STREAMSET)
-				if (vf->current_serialno != ogg_page_serialno(&og)) {
-					_decode_clear(vf); /* clear out stream state */
-					ogg_stream_destroy(work_os);
-				}
 
 			if (vf->ready_state < STREAMSET) {
 				int link;
@@ -1118,12 +1078,6 @@ int ov_raw_seek(OggVorbis_File *vf, int64_t pos) {
 				/* sign of a bogus stream.  error out,
 				 leave machine uninitialized */
 
-				/* need to initialize machine to this link */
-				{
-					int ret = _set_link_number_preserve_pos(vf, link);
-					if (ret)
-						goto seek_error;
-				}
 				ogg_stream_reset_serialno(vf->os, vf->current_serialno);
 				ogg_stream_reset_serialno(work_os, vf->current_serialno);
 
@@ -1152,7 +1106,6 @@ int ov_raw_seek(OggVorbis_File *vf, int64_t pos) {
 	/* dump the machine so we're in a known state */
 	vf->pcm_offset = -1;
 	ogg_stream_destroy(work_os);
-	_decode_clear(vf);
 	return OV_EBADLINK;
 }
 //-------------------------------------------------------------------------------------------------
@@ -1345,7 +1298,6 @@ int ov_pcm_seek_page(OggVorbis_File *vf, int64_t pos) {
 
 	/* dump machine so we're in a known state */
 	vf->pcm_offset = -1;
-	_decode_clear(vf);
 	return (int) result;
 }
 //-------------------------------------------------------------------------------------------------
@@ -1411,8 +1363,6 @@ int ov_pcm_seek(OggVorbis_File *vf, int64_t pos) {
 			/* suck in a new page */
 //			if (_get_next_page(vf, &og, -1) < 0)
 				break;
-			if (vf->current_serialno != ogg_page_serialno(&og))
-				_decode_clear(vf);
 
 			if (vf->ready_state < STREAMSET) {
 				int link, ret;
@@ -1507,11 +1457,6 @@ vorbis_info* ov_info(OggVorbis_File *vf, int link) {
 	if (vf->seekable) {
 		if (link >= vf->links)
 			return NULL;
-		if (link >= 0) {
-			int ret = _set_link_number_preserve_pos(vf, link);
-			if (ret)
-				return NULL;
-		}
 	}
 	return &vf->vi;
 }
@@ -1521,11 +1466,6 @@ vorbis_comment* ov_comment(OggVorbis_File *vf, int link) {
 	if (vf->seekable) {
 		if (link >= vf->links)
 			return NULL;
-		if (link >= 0) {
-			int ret = _set_link_number_preserve_pos(vf, link);
-			if (ret)
-				return NULL;
-		}
 	}
 	return &vf->vc;
 }
