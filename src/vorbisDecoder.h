@@ -230,10 +230,7 @@ void mdct_unroll_lap(int n0, int n1, int lW, int W, int *in, int *right,
 void res_clear_info(vorbis_info_residue *info);
 int res_unpack(vorbis_info_residue *info, vorbis_info *vi, oggpack_buffer *opb);
 int res_inverse(vorbis_dsp_state *vd, vorbis_info_residue *info, int32_t **in, int *nonzero, int ch);
-ogg_buffer_state* ogg_buffer_create(void);
-void _ogg_buffer_destroy(ogg_buffer_state *bs);
-void ogg_buffer_destroy(ogg_buffer_state *bs);
-ogg_buffer* _fetch_buffer(ogg_buffer_state *bs, long bytes);
+
 
 
 

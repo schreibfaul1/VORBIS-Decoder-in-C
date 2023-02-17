@@ -304,6 +304,10 @@ int32_t oggpack_read(oggpack_buffer *b, int bits);
 int32_t oggpack_bytes(oggpack_buffer *b);
 int32_t oggpack_bits(oggpack_buffer *b);
 
+ogg_buffer_state* ogg_buffer_create(void);
+void _ogg_buffer_destroy(ogg_buffer_state *bs);
+void ogg_buffer_destroy(ogg_buffer_state *bs);
+ogg_buffer* _fetch_buffer(ogg_buffer_state *bs, long bytes);
 
 
 
@@ -313,28 +317,16 @@ int32_t oggpack_bits(oggpack_buffer *b);
 
 
 
-//
-//
-//
-//
-///* Ogg BITSTREAM PRIMITIVES: bitstream ************************/
-//
-//extern void  oggpack_readinit(oggpack_buffer *b,ogg_reference *r);
-//extern int32_t  oggpack_look(oggpack_buffer *b,int bits);
-//extern void  oggpack_adv(oggpack_buffer *b,int bits);
-//extern int32_t  oggpack_read(oggpack_buffer *b,int bits);
-//extern int32_t  oggpack_bytes(oggpack_buffer *b);
-//extern int32_t  oggpack_bits(oggpack_buffer *b);
-//extern int   oggpack_eop(oggpack_buffer *b);
 //
 ///* Ogg BITSTREAM PRIMITIVES: decoding **************************/
 //
-extern ogg_sync_state *ogg_sync_create(void);
-extern int      ogg_sync_destroy(ogg_sync_state *oy);
+
 extern int      ogg_sync_reset(ogg_sync_state *oy);
 //
 extern unsigned char *ogg_sync_bufferin(ogg_sync_state *oy, long size);
 extern int      ogg_sync_wrote(ogg_sync_state *oy, long bytes);
+extern ogg_sync_state* ogg_sync_create(void);
+extern int ogg_sync_destroy(ogg_sync_state *oy);
 extern long     ogg_sync_pageseek(ogg_sync_state *oy,ogg_page *og);
 extern int      ogg_sync_pageout(ogg_sync_state *oy, ogg_page *og);
 extern int      ogg_stream_pagein(ogg_stream_state *os, ogg_page *og);
