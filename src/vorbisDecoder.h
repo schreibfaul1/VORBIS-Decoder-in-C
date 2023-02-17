@@ -20,6 +20,12 @@
 #define XdB(n) (n)
 #define LSP_FRACBITS 14
 
+#define INVSQ_LOOKUP_I_SHIFT 10
+#define INVSQ_LOOKUP_I_MASK 1023
+#define COS_LOOKUP_I_SHIFT 9
+#define COS_LOOKUP_I_MASK 511
+#define COS_LOOKUP_I_SZ 128
+
 #define floor1_rangedB 140 /* floor 1 fixed at -140dB to 0dB range */
 #define VIF_POSIT 63
 
@@ -264,36 +270,14 @@ int floor1_inverse2(vorbis_dsp_state *vd, vorbis_info_floor *in, int32_t *fit_va
 
 
 
-extern void vorbis_book_clear(codebook *b);
-extern int  vorbis_book_unpack(oggpack_buffer *b,codebook *c);
-extern int32_t vorbis_book_decode(codebook *book, oggpack_buffer *b);
-extern int32_t vorbis_book_decodevs_add(codebook *book, int32_t *a, oggpack_buffer *b,int n,int point);
-extern int32_t vorbis_book_decodev_set(codebook *book, int32_t *a, oggpack_buffer *b,int n,int point);
-extern int32_t vorbis_book_decodev_add(codebook *book, int32_t *a, oggpack_buffer *b,int n,int point);
-extern int32_t vorbis_book_decodevv_add(codebook *book, int32_t **a, int32_t off,int ch, oggpack_buffer *b,int n,int point);
-extern vorbis_info_floor* floor0_info_unpack(vorbis_info*, oggpack_buffer*);
-extern void floor0_free_info(vorbis_info_floor*);
-extern int floor0_memosize(vorbis_info_floor*);
-extern int32_t* floor0_inverse1(struct vorbis_dsp_state*, vorbis_info_floor*, int32_t*);
-extern int floor0_inverse2(struct vorbis_dsp_state*, vorbis_info_floor*, int32_t *buffer, int32_t*);
-extern vorbis_info_floor* floor1_info_unpack(vorbis_info*, oggpack_buffer*);
-extern void floor1_free_info(vorbis_info_floor*);
-extern int floor1_memosize(vorbis_info_floor*);
-extern int32_t* floor1_inverse1(struct vorbis_dsp_state*, vorbis_info_floor*, int32_t*);
-extern int floor1_inverse2(struct vorbis_dsp_state*, vorbis_info_floor*, int32_t *buffer, int32_t*);
+
 extern int mapping_info_unpack(vorbis_info_mapping*, vorbis_info*,	oggpack_buffer*);
 extern void mapping_clear_info(vorbis_info_mapping*);
 extern int mapping_inverse(struct vorbis_dsp_state*, vorbis_info_mapping*);
 extern void res_clear_info(vorbis_info_residue *info);
 extern int res_unpack(vorbis_info_residue *info, vorbis_info *vi, oggpack_buffer *opb);
 extern int res_inverse(vorbis_dsp_state*, vorbis_info_residue *info, int32_t **in, int *nonzero, int ch);
-extern vorbis_dsp_state* vorbis_dsp_create(vorbis_info *vi);
-extern void vorbis_dsp_destroy(vorbis_dsp_state *v);
-extern int vorbis_dsp_headerin(vorbis_info *vi, vorbis_comment *vc,	ogg_packet *op);
-extern int vorbis_dsp_restart(vorbis_dsp_state *v);
-extern int vorbis_dsp_synthesis(vorbis_dsp_state *vd, ogg_packet *op, int decodep);
-extern int vorbis_dsp_pcmout(vorbis_dsp_state *v, int16_t *pcm, int samples);
-extern int vorbis_dsp_read(vorbis_dsp_state *v, int samples);
+
 extern int32_t vorbis_packet_blocksize(vorbis_info *vi, ogg_packet *op);
 extern int ov_open(FILE *f,OggVorbis_File *vf,char *initial,int32_t ibytes);
 extern vorbis_comment *ov_comment(OggVorbis_File *vf,int link);
