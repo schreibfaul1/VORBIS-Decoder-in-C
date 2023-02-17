@@ -64,22 +64,23 @@
 //-------------------------------------------------------------------------------------------------
 /* read a little more data from the file/pipe into the ogg_sync framer */
 long _get_data(OggVorbis_File *vf) {
-	errno = 0;
-	if (vf->datasource) {
-		unsigned char *buffer = ogg_sync_bufferin(vf->oy, CHUNKSIZE);
-		long bytes = (vf->callbacks.read_func)(buffer, 1, CHUNKSIZE,
-				vf->datasource);
-		if (bytes > 0)
-			ogg_sync_wrote(vf->oy, bytes);
-		if (bytes == 0 && errno)
-			return -1;
-		return bytes;
-	} else
-		return 0;
+//	errno = 0;
+//	if (vf->datasource) {
+//		unsigned char *buffer = ogg_sync_bufferin(vf->oy, CHUNKSIZE);
+//		long bytes = (vf->callbacks.read_func)(buffer, 1, CHUNKSIZE,
+//				vf->datasource);
+//		if (bytes > 0)
+//			ogg_sync_wrote(vf->oy, bytes);
+//		if (bytes == 0 && errno)
+//			return -1;
+//		return bytes;
+//	} else
+//		return 0;
 }
 //-------------------------------------------------------------------------------------------------
 /* save a tiny smidge of verbosity to make the code more readable */
 void _seek_helper(OggVorbis_File *vf, int64_t offset) {
+	printf("seek");
 	if (vf->datasource) {
 		(vf->callbacks.seek_func)(vf->datasource, offset, SEEK_SET);
 		vf->offset = offset;
@@ -106,40 +107,41 @@ void _seek_helper(OggVorbis_File *vf, int64_t offset) {
  produces a refcounted page */
 
 int64_t _get_next_page(OggVorbis_File *vf, ogg_page *og, int64_t boundary) {
-	if (boundary > 0)
-		boundary += vf->offset;
-	while (1) {
-		long more;
-
-		if (boundary > 0 && vf->offset >= boundary)
-			return OV_FALSE;
-		more = ogg_sync_pageseek(vf->oy, og);
-
-		if (more < 0) {
-			/* skipped n bytes */
-			vf->offset -= more;
-		} else {
-			if (more == 0) {
-				/* send more paramedics */
-				if (!boundary)
-					return OV_FALSE;
-				{
-					long ret = _get_data(vf);
-					if (ret == 0)
-						return OV_EOF;
-					if (ret < 0)
-						return OV_EREAD;
-				}
-			} else {
-				/* got a page.  Return the offset at the page beginning,
-				 advance the internal offset past the page end */
-				int64_t ret = vf->offset;
-				vf->offset += more;
-				return ret;
-
-			}
-		}
-	}
+//	printf("get");
+//	if (boundary > 0)
+//		boundary += vf->offset;
+//	while (1) {
+//		long more;
+//
+//		if (boundary > 0 && vf->offset >= boundary)
+//			return OV_FALSE;
+//		more = ogg_sync_pageseek(vf->oy, og);
+//
+//		if (more < 0) {
+//			/* skipped n bytes */
+//			vf->offset -= more;
+//		} else {
+//			if (more == 0) {
+//				/* send more paramedics */
+//				if (!boundary)
+//					return OV_FALSE;
+//				{
+//					long ret = _get_data(vf);
+//					if (ret == 0)
+//						return OV_EOF;
+//					if (ret < 0)
+//						return OV_EREAD;
+//				}
+//			} else {
+//				/* got a page.  Return the offset at the page beginning,
+//				 advance the internal offset past the page end */
+//				int64_t ret = vf->offset;
+//				vf->offset += more;
+//				return ret;
+//
+//			}
+//		}
+//	}
 }
 //-------------------------------------------------------------------------------------------------
 /* find the latest page beginning before the current stream cursor
@@ -1407,7 +1409,7 @@ int ov_pcm_seek(OggVorbis_File *vf, int64_t pos) {
 				break;
 
 			/* suck in a new page */
-			if (_get_next_page(vf, &og, -1) < 0)
+//			if (_get_next_page(vf, &og, -1) < 0)
 				break;
 			if (vf->current_serialno != ogg_page_serialno(&og))
 				_decode_clear(vf);
@@ -1460,82 +1462,6 @@ int ov_pcm_seek(OggVorbis_File *vf, int64_t pos) {
 	ogg_page_release(&og);
 	ogg_packet_release(&op);
 	return 0;
-}
-//-------------------------------------------------------------------------------------------------
-/* seek to a playback time relative to the decompressed pcm stream
- returns zero on success, nonzero on failure */
-int ov_time_seek(OggVorbis_File *vf, int64_t milliseconds) {
-	/* translate time to PCM position and call ov_pcm_seek */
-
-	int link = -1;
-	int64_t pcm_total = ov_pcm_total(vf, -1);
-	int64_t time_total = ov_time_total(vf, -1);
-
-	if (vf->ready_state < OPENED)
-		return OV_EINVAL;
-	if (!vf->seekable)
-		return OV_ENOSEEK;
-	if (milliseconds < 0 || milliseconds > time_total)
-		return OV_EINVAL;
-
-	/* which bitstream section does this time offset occur in? */
-	for (link = vf->links - 1; link >= 0; link--) {
-		pcm_total -= vf->pcmlengths[link * 2 + 1];
-		time_total -= ov_time_total(vf, link);
-		if (milliseconds >= time_total)
-			break;
-	}
-
-	/* enough information to convert time offset to pcm offset */
-	{
-		int ret = _set_link_number(vf, link);
-		if (ret)
-			return ret;
-		return ov_pcm_seek(vf,
-				pcm_total + (milliseconds - time_total) * vf->vi.rate / 1000);
-	}
-}
-//-------------------------------------------------------------------------------------------------
-/* page-granularity version of ov_time_seek
- returns zero on success, nonzero on failure */
-int ov_time_seek_page(OggVorbis_File *vf, int64_t milliseconds) {
-	/* translate time to PCM position and call ov_pcm_seek */
-
-	int link = -1;
-	int64_t pcm_total = ov_pcm_total(vf, -1);
-	int64_t time_total = ov_time_total(vf, -1);
-
-	if (vf->ready_state < OPENED)
-		return OV_EINVAL;
-	if (!vf->seekable)
-		return OV_ENOSEEK;
-	if (milliseconds < 0 || milliseconds > time_total)
-		return OV_EINVAL;
-
-	/* which bitstream section does this time offset occur in? */
-	for (link = vf->links - 1; link >= 0; link--) {
-		pcm_total -= vf->pcmlengths[link * 2 + 1];
-		time_total -= ov_time_total(vf, link);
-		if (milliseconds >= time_total)
-			break;
-	}
-
-	/* enough information to convert time offset to pcm offset */
-	{
-		int ret = _set_link_number(vf, link);
-		if (ret)
-			return ret;
-		return ov_pcm_seek_page(vf,
-				pcm_total + (milliseconds - time_total) * vf->vi.rate / 1000);
-	}
-}
-//-------------------------------------------------------------------------------------------------
-/* tell the current stream offset cursor.  Note that seek followed by
- tell will likely not give the set offset due to caching */
-int64_t ov_raw_tell(OggVorbis_File *vf) {
-	if (vf->ready_state < OPENED)
-		return OV_EINVAL;
-	return vf->offset;
 }
 //-------------------------------------------------------------------------------------------------
 /* return PCM offset (sample) of next PCM sample to be read */
@@ -1666,10 +1592,6 @@ int32_t ov_read(OggVorbis_File *vf, void *buffer, int bytes_req) {
 	}
 }
 
-
-
-
-
 //-------------------------------------------------------------------------------------------------
 int32_t oggpack_bytes(oggpack_buffer *b) {
 	if (b->headend < 0)
@@ -1682,6 +1604,5 @@ int32_t oggpack_bits(oggpack_buffer *b) {
 		return (b->count + b->head->length) * 8;
 	return (b->count + b->head->length - b->headend) * 8 + b->headbit;
 }
-
 
 

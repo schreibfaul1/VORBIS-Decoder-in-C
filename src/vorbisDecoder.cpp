@@ -3375,13 +3375,11 @@ int vorbis_book_unpack(oggpack_buffer *opb, codebook *s) {
 				if (s->q_bits <= 8) {
 					s->q_val = malloc(quantvals);
 					for (i = 0; i < quantvals; i++)
-						((uint8_t*) s->q_val)[i] = oggpack_read(opb,
-								s->q_bits);
+						((uint8_t*) s->q_val)[i] = oggpack_read(opb, s->q_bits);
 				} else {
 					s->q_val = malloc(quantvals * 2);
 					for (i = 0; i < quantvals; i++)
-						((uint16_t*) s->q_val)[i] = oggpack_read(opb,
-								s->q_bits);
+						((uint16_t*) s->q_val)[i] = oggpack_read(opb, s->q_bits);
 				}
 
 				if (oggpack_eop(opb))
@@ -3433,8 +3431,7 @@ int vorbis_book_unpack(oggpack_buffer *opb, codebook *s) {
 
 			if (s->q_bits <= 8) {
 				for (i = 0; i < s->used_entries * s->dim; i++)
-					((uint8_t*) (s->q_val))[i] = oggpack_read(opb,
-							s->q_bits);
+					((uint8_t*) (s->q_val))[i] = oggpack_read(opb, s->q_bits);
 			} else {
 				for (i = 0; i < s->used_entries * s->dim; i++)
 					((uint16_t*) (s->q_val))[i] = oggpack_read(opb, s->q_bits);
@@ -4297,6 +4294,7 @@ int32_t* floor0_inverse1(vorbis_dsp_state *vd, vorbis_info_floor *i, int32_t *ls
 	int j, k;
 
 	int ampraw = oggpack_read(&vd->opb, info->ampbits);
+
 	if (ampraw > 0) { /* also handles the -1 out of data case */
 		long maxval = (1 << info->ampbits) - 1;
 		int amp = ((ampraw * info->ampdB) << 4) / maxval;
@@ -5018,10 +5016,8 @@ int mapping_info_unpack(vorbis_info_mapping *info, vorbis_info *vi,	oggpack_buff
 		info->coupling = (coupling_step*)malloc(info->coupling_steps * sizeof(*info->coupling));
 
 		for (i = 0; i < info->coupling_steps; i++) {
-			int testM = info->coupling[i].mag = oggpack_read(opb,
-					ilog(vi->channels));
-			int testA = info->coupling[i].ang = oggpack_read(opb,
-					ilog(vi->channels));
+			int testM = info->coupling[i].mag = oggpack_read(opb, ilog(vi->channels));
+			int testA = info->coupling[i].ang = oggpack_read(opb, ilog(vi->channels));
 
 			if (testM < 0 || testA < 0 || testM == testA
 					|| testM >= vi->channels || testA >= vi->channels)
@@ -5730,7 +5726,6 @@ int res_unpack(vorbis_info_residue *info, vorbis_info *vi, oggpack_buffer *opb) 
 }
 //-------------------------------------------------------------------------------------------------
 int res_inverse(vorbis_dsp_state *vd, vorbis_info_residue *info, int32_t **in, int *nonzero, int ch) {
-
 	int i, j, k, s, used = 0;
 	codec_setup_info *ci = (codec_setup_info*) vd->vi->codec_setup;
 	codebook *phrasebook = ci->book_param + info->groupbook;

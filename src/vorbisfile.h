@@ -35,7 +35,7 @@ typedef struct ogg_buffer {
   int                 refcount;
   union {
     ogg_buffer_state_t  *owner;
-    struct ogg_buffer   *next;
+    struct ogg_buffer *next;
   } ptr;
 } ogg_buffer_t;
 
@@ -286,9 +286,6 @@ int64_t ov_time_total(OggVorbis_File *vf, int i);
 int ov_raw_seek(OggVorbis_File *vf, int64_t pos);
 int ov_pcm_seek_page(OggVorbis_File *vf, int64_t pos);
 int ov_pcm_seek(OggVorbis_File *vf, int64_t pos);
-int ov_time_seek(OggVorbis_File *vf, int64_t milliseconds);
-int ov_time_seek_page(OggVorbis_File *vf, int64_t milliseconds);
-int64_t ov_raw_tell(OggVorbis_File *vf);
 int64_t ov_pcm_tell(OggVorbis_File *vf);
 int64_t ov_time_tell(OggVorbis_File *vf);
 vorbis_info* ov_info(OggVorbis_File *vf, int link);

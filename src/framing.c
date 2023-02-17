@@ -25,8 +25,6 @@
 #include "vorbisfile.h"
 
 /* A complete description of Ogg framing exists in docs/framing.html */
-
-
 //-------------------------------------------------------------------------------------------------
 ogg_reference_t* _fetch_ref(ogg_buffer_state_t *bs) {
 	ogg_reference_t *or;
@@ -1130,4 +1128,5 @@ void ogg_page_dup(ogg_page *dup, ogg_page *orig) {
 	dup->header = ogg_buffer_dup(orig->header);
 	dup->body = ogg_buffer_dup(orig->body);
 }
+
 
