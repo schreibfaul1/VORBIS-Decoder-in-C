@@ -32,6 +32,8 @@
 #define  LINKSET   4 /* serialno and link set to current link */
 #define  INITSET   5
 
+int ov_raw_seek(OggVorbis_File *vf,int64_t pos); // proto
+
 /* A 'chained bitstream' is a Vorbis bitstream that contains more than
    one logical bitstream arranged end to end (the only form of Ogg
    multiplexing allowed in a Vorbis bitstream; grouping [parallel

@@ -26,6 +26,10 @@
 #define COS_LOOKUP_I_MASK 511
 #define COS_LOOKUP_I_SZ 128
 
+#define cPI3_8 (0x30fbc54d)
+#define cPI2_8 (0x5a82799a)
+#define cPI1_8 (0x7641af3d)
+
 #define floor1_rangedB 140 /* floor 1 fixed at -140dB to 0dB range */
 #define VIF_POSIT 63
 
@@ -206,8 +210,43 @@ typedef struct OggVorbis_File {
     vorbis_dsp_state *vd; /* central working state for the packet->PCM decoder */
    ov_callbacks callbacks;
 } OggVorbis_File;
+//-------------------------------------------------------------------------------------------------
+
+union magic {
+  struct {
+    int32_t lo;
+    int32_t hi;
+  } halves;
+  int64_t whole;
+};
+
+inline int32_t MULT32(int32_t x, int32_t y) {
+	union magic magic;
+	magic.whole = (int64_t) x * y;
+	return magic.halves.hi;
+}
 
 
+inline int32_t MULT31(int32_t x, int32_t y) {
+	return MULT32(x,y)<<1;
+}
+
+inline void XPROD31(int32_t  a, int32_t  b, int32_t  t, int32_t  v, int32_t *x, int32_t *y){
+	*x = MULT31(a, t) + MULT31(b, v);
+	*y = MULT31(b, t) - MULT31(a, v);
+}
+
+inline void XNPROD31(int32_t  a, int32_t  b, int32_t  t, int32_t  v, int32_t *x, int32_t *y){
+	*x = MULT31(a, t) - MULT31(b, v);
+	*y = MULT31(b, t) + MULT31(a, v);
+}
+
+inline int32_t CLIP_TO_15(int32_t x) {
+	int ret = x;
+	ret -= ((x <= 32767) - 1) & (x - 32767);
+	ret -= ((x >= -32768) - 1) & (x + 32768);
+	return (ret);
+}
 
 //-------------------------------------------------------------------------------------------------
 void _span(oggpack_buffer *b);
@@ -279,6 +318,24 @@ int _vorbis_unpack_info(vorbis_info *vi, oggpack_buffer *opb);
 int _vorbis_unpack_comment(vorbis_comment *vc, oggpack_buffer *opb);
 int _vorbis_unpack_books(vorbis_info *vi, oggpack_buffer *opb);
 int vorbis_dsp_headerin(vorbis_info *vi, vorbis_comment *vc, ogg_packet *op);
+void presymmetry(int32_t *in, int n2, int step);
+void mdct_butterfly_8(int32_t *x);
+void mdct_butterfly_16(int32_t *x);
+void mdct_butterfly_32(int32_t *x);
+void mdct_butterfly_generic(int32_t *x, int points, int step);
+void mdct_butterflies(int32_t *x, int points, int shift);
+int bitrev12(int x);
+void mdct_bitreverse(int32_t *x, int n, int shift) ;
+void mdct_step7(int32_t *x, int n, int step);
+void mdct_step8(int32_t *x, int n, int step);
+void mdct_backward(int n, int32_t *in);
+void mdct_shift_right(int n, int32_t *in, int32_t *right);
+void mdct_unroll_lap(int n0, int n1, int lW, int W, int *in, int *right,
+		const int *w0, const int *w1, short int *out, int step, int start, /* samples, this frame */
+		int end /* samples, this frame */);
+
+
+
 
 
 
