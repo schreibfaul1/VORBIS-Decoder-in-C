@@ -27,26 +27,25 @@ typedef struct ogg_buffer_state{
   struct ogg_reference *unused_references;
   int                   outstanding;
   int                   shutdown;
-} ogg_buffer_state;
+} ogg_buffer_state_t;
 
 typedef struct ogg_buffer {
   unsigned char      *data;
   long                size;
   int                 refcount;
-  
   union {
-    ogg_buffer_state  *owner;
-    struct ogg_buffer *next;
+    ogg_buffer_state_t  *owner;
+    struct ogg_buffer   *next;
   } ptr;
-} ogg_buffer;
+} ogg_buffer_t;
 
 typedef struct ogg_reference {
-  ogg_buffer    *buffer;
+  ogg_buffer_t    *buffer;
   long           begin;
   long           length;
 
   struct ogg_reference *next;
-} ogg_reference;
+} ogg_reference_t;
 
 typedef struct oggpack_buffer {
   int            headbit;
@@ -54,29 +53,29 @@ typedef struct oggpack_buffer {
   long           headend;
 
   /* memory management */
-  ogg_reference *head;
-  ogg_reference *tail;
+  ogg_reference_t *head;
+  ogg_reference_t *tail;
 
   /* render the byte/bit counter API constant time */
   long              count; /* doesn't count the tail */
-} oggpack_buffer;
+} oggpack_buffer_t;
 
 typedef struct oggbyte_buffer {
-  ogg_reference *baseref;
+  ogg_reference_t *baseref;
 
-  ogg_reference *ref;
+  ogg_reference_t *ref;
   unsigned char *ptr;
   long           pos;
   long           end;
-} oggbyte_buffer;
+} oggbyte_buffer_t;
 
 typedef struct ogg_sync_state {
   /* decode memory management pool */
-  ogg_buffer_state *bufferpool;
+  ogg_buffer_state_t *bufferpool;
 
   /* stream buffers */
-  ogg_reference    *fifo_head;
-  ogg_reference    *fifo_tail;
+  ogg_reference_t    *fifo_head;
+  ogg_reference_t    *fifo_tail;
   long              fifo_fill;
 
   /* stream sync management */
@@ -84,13 +83,13 @@ typedef struct ogg_sync_state {
   int               headerbytes;
   int               bodybytes;
 
-} ogg_sync_state;
+} ogg_sync_state_t;
 
 typedef struct ogg_stream_state {
-  ogg_reference *header_head;
-  ogg_reference *header_tail;
-  ogg_reference *body_head;
-  ogg_reference *body_tail;
+  ogg_reference_t *header_head;
+  ogg_reference_t *header_tail;
+  ogg_reference_t *body_head;
+  ogg_reference_t *body_tail;
 
   int            e_o_s;    /* set when we have buffered the last
                               packet in the logical bitstream */
@@ -115,10 +114,10 @@ typedef struct ogg_stream_state {
   int            laceptr;
   uint32_t   body_fill_next;
   
-} ogg_stream_state;
+} ogg_stream_state_t;
 
 typedef struct {
-  ogg_reference *packet;
+  ogg_reference_t *packet;
   long           bytes;
   long           b_o_s;
   long           e_o_s;
@@ -131,9 +130,9 @@ typedef struct {
 } ogg_packet;
 
 typedef struct {
-  ogg_reference *header;
+  ogg_reference_t *header;
   int            header_len;
-  ogg_reference *body;
+  ogg_reference_t *body;
   long           body_len;
 } ogg_page;
 
@@ -152,7 +151,7 @@ typedef void vorbis_info_floor;
 
 struct vorbis_dsp_state { // vorbis_dsp_state buffers the current vorbis audio analysis/synthesis state.
 	vorbis_info *vi;      // The DSP state beint32_ts to a specific logical bitstream
-	oggpack_buffer opb;
+	oggpack_buffer_t opb;
 	int32_t **work;
 	int32_t **mdctright;
 	int out_begin;
@@ -235,7 +234,7 @@ typedef struct OggVorbis_File {
 	int seekable;
 	int64_t offset;
 	int64_t end;
-	ogg_sync_state *oy; //If the FILE handle isn't seekable (eg, a pipe), only the current
+	ogg_sync_state_t *oy; //If the FILE handle isn't seekable (eg, a pipe), only the current
     int              links;//stream appears */
     int64_t     *offsets;
     int64_t     *dataoffsets;
@@ -249,7 +248,7 @@ typedef struct OggVorbis_File {
     int              current_link;
     int64_t      bittrack;
     int64_t      samptrack;
-    ogg_stream_state *os; /* take physical pages, weld into a logical stream of packets */
+    ogg_stream_state_t *os; /* take physical pages, weld into a logical stream of packets */
     vorbis_dsp_state *vd; /* central working state for the packet->PCM decoder */
     ov_callbacks callbacks;
 } OggVorbis_File;
@@ -296,18 +295,18 @@ vorbis_info* ov_info(OggVorbis_File *vf, int link);
 vorbis_comment* ov_comment(OggVorbis_File *vf, int link);
 int32_t ov_read(OggVorbis_File *vf, void *buffer, int bytes_req);
 
-void oggpack_readinit(oggpack_buffer *b, ogg_reference *r);
-int32_t oggpack_look(oggpack_buffer *b, int bits);
-void oggpack_adv(oggpack_buffer *b, int bits);
-int oggpack_eop(oggpack_buffer *b);
-int32_t oggpack_read(oggpack_buffer *b, int bits);
-int32_t oggpack_bytes(oggpack_buffer *b);
-int32_t oggpack_bits(oggpack_buffer *b);
+void oggpack_readinit(oggpack_buffer_t *b, ogg_reference_t *r);
+int32_t oggpack_look(oggpack_buffer_t *b, int bits);
+void oggpack_adv(oggpack_buffer_t *b, int bits);
+int oggpack_eop(oggpack_buffer_t *b);
+int32_t oggpack_read(oggpack_buffer_t *b, int bits);
+int32_t oggpack_bytes(oggpack_buffer_t *b);
+int32_t oggpack_bits(oggpack_buffer_t *b);
 
-ogg_buffer_state* ogg_buffer_create(void);
-void _ogg_buffer_destroy(ogg_buffer_state *bs);
-void ogg_buffer_destroy(ogg_buffer_state *bs);
-ogg_buffer* _fetch_buffer(ogg_buffer_state *bs, long bytes);
+ogg_buffer_state_t* ogg_buffer_create(void);
+void _ogg_buffer_destroy(ogg_buffer_state_t *bs);
+void ogg_buffer_destroy(ogg_buffer_state_t *bs);
+ogg_buffer_t* _fetch_buffer(ogg_buffer_state_t *bs, long bytes);
 
 
 
@@ -321,25 +320,25 @@ ogg_buffer* _fetch_buffer(ogg_buffer_state *bs, long bytes);
 ///* Ogg BITSTREAM PRIMITIVES: decoding **************************/
 //
 
-extern int      ogg_sync_reset(ogg_sync_state *oy);
+extern int      ogg_sync_reset(ogg_sync_state_t *oy);
 //
-extern unsigned char *ogg_sync_bufferin(ogg_sync_state *oy, long size);
-extern int      ogg_sync_wrote(ogg_sync_state *oy, long bytes);
-extern ogg_sync_state* ogg_sync_create(void);
-extern int ogg_sync_destroy(ogg_sync_state *oy);
-extern long     ogg_sync_pageseek(ogg_sync_state *oy,ogg_page *og);
-extern int      ogg_sync_pageout(ogg_sync_state *oy, ogg_page *og);
-extern int      ogg_stream_pagein(ogg_stream_state *os, ogg_page *og);
-extern int      ogg_stream_packetout(ogg_stream_state *os,ogg_packet *op);
-extern int      ogg_stream_packetpeek(ogg_stream_state *os,ogg_packet *op);
+extern unsigned char *ogg_sync_bufferin(ogg_sync_state_t *oy, long size);
+extern int      ogg_sync_wrote(ogg_sync_state_t *oy, long bytes);
+extern ogg_sync_state_t* ogg_sync_create(void);
+extern int ogg_sync_destroy(ogg_sync_state_t *oy);
+extern long     ogg_sync_pageseek(ogg_sync_state_t *oy,ogg_page *og);
+extern int      ogg_sync_pageout(ogg_sync_state_t *oy, ogg_page *og);
+extern int      ogg_stream_pagein(ogg_stream_state_t *os, ogg_page *og);
+extern int      ogg_stream_packetout(ogg_stream_state_t *os,ogg_packet *op);
+extern int      ogg_stream_packetpeek(ogg_stream_state_t *os,ogg_packet *op);
 //
 ///* Ogg BITSTREAM PRIMITIVES: general ***************************/
 //
-extern ogg_stream_state *ogg_stream_create(int serialno);
-extern int      ogg_stream_destroy(ogg_stream_state *os);
-extern int      ogg_stream_reset(ogg_stream_state *os);
-extern int      ogg_stream_reset_serialno(ogg_stream_state *os,int serialno);
-extern int      ogg_stream_eos(ogg_stream_state *os);
+extern ogg_stream_state_t *ogg_stream_create(int serialno);
+extern int      ogg_stream_destroy(ogg_stream_state_t *os);
+extern int      ogg_stream_reset(ogg_stream_state_t *os);
+extern int      ogg_stream_reset_serialno(ogg_stream_state_t *os,int serialno);
+extern int      ogg_stream_eos(ogg_stream_state_t *os);
 //
 extern int      ogg_page_checksum_set(ogg_page *og);
 //

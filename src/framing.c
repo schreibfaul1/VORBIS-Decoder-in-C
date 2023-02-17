@@ -23,14 +23,13 @@
 #include <string.h>
 #include "misc.h"
 #include "vorbisfile.h"
-#include "framing.h"
 
 /* A complete description of Ogg framing exists in docs/framing.html */
 
 
 //-------------------------------------------------------------------------------------------------
-ogg_reference* _fetch_ref(ogg_buffer_state *bs) {
-	ogg_reference *or;
+ogg_reference_t* _fetch_ref(ogg_buffer_state_t *bs) {
+	ogg_reference_t *or;
 	bs->outstanding++;
 
 	/* do we have an unused reference sitting in the pool? */
@@ -49,8 +48,8 @@ ogg_reference* _fetch_ref(ogg_buffer_state *bs) {
 }
 
 //-------------------------------------------------------------------------------------------------
-ogg_buffer* _fetch_buffer(ogg_buffer_state *bs, long bytes) {
-	ogg_buffer *ob;
+ogg_buffer_t* _fetch_buffer(ogg_buffer_state_t *bs, long bytes) {
+	ogg_buffer_t *ob;
 	bs->outstanding++;
 
 	/* do we have an unused buffer sitting in the pool? */
@@ -65,7 +64,7 @@ ogg_buffer* _fetch_buffer(ogg_buffer_state *bs, long bytes) {
 		}
 	} else {
 		/* allocate a new buffer */
-		ob = (ogg_buffer*)malloc(sizeof(*ob));
+		ob = (ogg_buffer_t*)malloc(sizeof(*ob));
 		ob->data = (uint8_t*)malloc(bytes < 16 ? 16 : bytes);
 		ob->size = bytes;
 	}
@@ -80,16 +79,16 @@ ogg_buffer* _fetch_buffer(ogg_buffer_state *bs, long bytes) {
 //-------------------------------------------------------------------------------------------------
 /* fetch a reference pointing to a fresh, initially continguous buffer
  of at least [bytes] length */
-ogg_reference* ogg_buffer_alloc(ogg_buffer_state *bs, long bytes) {
-	ogg_buffer *ob =  _fetch_buffer(bs, bytes);
-	ogg_reference *or = _fetch_ref(bs);
+ogg_reference_t* ogg_buffer_alloc(ogg_buffer_state_t *bs, long bytes) {
+	ogg_buffer_t *ob =  _fetch_buffer(bs, bytes);
+	ogg_reference_t *or = _fetch_ref(bs);
 	or->buffer = ob;
 	return or;
 }
 //-------------------------------------------------------------------------------------------------
 /* enlarge the data buffer in the current link */
-void ogg_buffer_realloc(ogg_reference *or, long bytes) {
-	ogg_buffer *ob = or->buffer;
+void ogg_buffer_realloc(ogg_reference_t *or, long bytes) {
+	ogg_buffer_t *ob = or->buffer;
 
 	/* if the unused buffer is too small, grow it */
 	if (ob->size < bytes) {
@@ -98,12 +97,12 @@ void ogg_buffer_realloc(ogg_reference *or, long bytes) {
 	}
 }
 //-------------------------------------------------------------------------------------------------
-void _ogg_buffer_mark_one(ogg_reference *or) {
+void _ogg_buffer_mark_one(ogg_reference_t *or) {
 	or->buffer->refcount++;
 }
 //-------------------------------------------------------------------------------------------------
 /* increase the refcount of the buffers to which the reference points */
-static void ogg_buffer_mark(ogg_reference *or) {
+static void ogg_buffer_mark(ogg_reference_t *or) {
 	while (or) {
 		_ogg_buffer_mark_one(or);
 		or = or->next;
@@ -113,12 +112,12 @@ static void ogg_buffer_mark(ogg_reference *or) {
 /* duplicate a reference (pointing to the same actual buffer memory)
  and increment buffer refcount.  If the desired segment is zero
  length, a zero length ref is returned. */
-static ogg_reference* ogg_buffer_sub(ogg_reference *or, long length) {
-	ogg_reference *ret = 0, *head = 0;
+static ogg_reference_t* ogg_buffer_sub(ogg_reference_t *or, long length) {
+	ogg_reference_t *ret = 0, *head = 0;
 
 	/* duplicate the reference chain; increment refcounts */
 	while (or && length) {
-		ogg_reference *temp = _fetch_ref(or->buffer->ptr.owner);
+		ogg_reference_t *temp = _fetch_ref(or->buffer->ptr.owner);
 		if (head)
 			head->next = temp;
 		else
@@ -138,11 +137,11 @@ static ogg_reference* ogg_buffer_sub(ogg_reference *or, long length) {
 	return ret;
 }
 
-ogg_reference* ogg_buffer_dup(ogg_reference *or) {
-	ogg_reference *ret = 0, *head = 0;
+ogg_reference_t* ogg_buffer_dup(ogg_reference_t *or) {
+	ogg_reference_t *ret = 0, *head = 0;
 	/* duplicate the reference chain; increment refcounts */
 	while (or) {
-		ogg_reference *temp = _fetch_ref(or->buffer->ptr.owner);
+		ogg_reference_t *temp = _fetch_ref(or->buffer->ptr.owner);
 		if (head)
 			head->next = temp;
 		else
@@ -162,14 +161,14 @@ ogg_reference* ogg_buffer_dup(ogg_reference *or) {
  the buffer preceeding pos and 'head'/'tail' are the buffer past the
  split.  If pos is at or past the end of the passed in segment,
  'head/tail' are NULL */
-static ogg_reference* ogg_buffer_split(ogg_reference **tail,
-		ogg_reference **head, long pos) {
+static ogg_reference_t* ogg_buffer_split(ogg_reference_t **tail,
+		ogg_reference_t **head, long pos) {
 
 	/* walk past any preceeding fragments to one of:
 	 a) the exact boundary that seps two fragments
 	 b) the fragment that needs split somewhere in the middle */
-	ogg_reference *ret = *tail;
-	ogg_reference *or = *tail;
+	ogg_reference_t *ret = *tail;
+	ogg_reference_t *or = *tail;
 
 	while (or && pos > or->length) {
 		pos -= or->length;
@@ -228,9 +227,9 @@ static ogg_reference* ogg_buffer_split(ogg_reference **tail,
 // watch for the stragglers to come in.  When they do, finish destruction.
 
 /* call the helper while holding lock */
-void _ogg_buffer_destroy(ogg_buffer_state *bs) {
-	ogg_buffer *bt;
-	ogg_reference *rt;
+void _ogg_buffer_destroy(ogg_buffer_state_t *bs) {
+	ogg_buffer_t *bt;
+	ogg_reference_t *rt;
 
 	if (bs->shutdown) {
 
@@ -238,7 +237,7 @@ void _ogg_buffer_destroy(ogg_buffer_state *bs) {
 		rt = bs->unused_references;
 
 		while (bt) {
-			ogg_buffer *b = bt;
+			ogg_buffer_t *b = bt;
 			bt = b->ptr.next;
 			if (b->data)
 				free(b->data);
@@ -246,7 +245,7 @@ void _ogg_buffer_destroy(ogg_buffer_state *bs) {
 		}
 		bs->unused_buffers = 0;
 		while (rt) {
-			ogg_reference *r = rt;
+			ogg_reference_t *r = rt;
 			rt = r->next;
 			free(r);
 		}
@@ -258,15 +257,15 @@ void _ogg_buffer_destroy(ogg_buffer_state *bs) {
 	}
 }
 //-------------------------------------------------------------------------------------------------
-void ogg_buffer_destroy(ogg_buffer_state *bs) {
+void ogg_buffer_destroy(ogg_buffer_state_t *bs) {
 	bs->shutdown = 1;
 	_ogg_buffer_destroy(bs);
 }
 
 
-static void ogg_buffer_release_one(ogg_reference *or) {
-	ogg_buffer *ob = or->buffer;
-	ogg_buffer_state *bs = ob->ptr.owner;
+static void ogg_buffer_release_one(ogg_reference_t *or) {
+	ogg_buffer_t *ob = or->buffer;
+	ogg_buffer_state_t *bs = ob->ptr.owner;
 
 	ob->refcount--;
 	if (ob->refcount == 0) {
@@ -285,18 +284,18 @@ static void ogg_buffer_release_one(ogg_reference *or) {
 
 /* release the references, decrease the refcounts of buffers to which
  they point, release any buffers with a refcount that drops to zero */
-static void ogg_buffer_release(ogg_reference *or) {
+static void ogg_buffer_release(ogg_reference_t *or) {
 	while (or) {
-		ogg_reference *next = or->next;
+		ogg_reference_t *next = or->next;
 		ogg_buffer_release_one(or);
 		or = next;
 	}
 }
 
-static ogg_reference* ogg_buffer_pretruncate(ogg_reference *or, long pos) {
+static ogg_reference_t* ogg_buffer_pretruncate(ogg_reference_t *or, long pos) {
 	/* release preceeding fragments we don't want */
 	while (or && pos >= or->length) {
-		ogg_reference *next = or->next;
+		ogg_reference_t *next = or->next;
 		pos -= or->length;
 		ogg_buffer_release_one(or);
 		or = next;
@@ -308,7 +307,7 @@ static ogg_reference* ogg_buffer_pretruncate(ogg_reference *or, long pos) {
 	return or;
 }
 
-static ogg_reference* ogg_buffer_walk(ogg_reference *or) {
+static ogg_reference_t* ogg_buffer_walk(ogg_reference_t *or) {
 	if (!or)
 		return NULL;
 	while (or->next) {
@@ -319,7 +318,7 @@ static ogg_reference* ogg_buffer_walk(ogg_reference *or) {
 
 /* *head is appended to the front end (head) of *tail; both continue to
  be valid pointers, with *tail at the tail and *head at the head */
-static ogg_reference* ogg_buffer_cat(ogg_reference *tail, ogg_reference *head) {
+static ogg_reference_t* ogg_buffer_cat(ogg_reference_t *tail, ogg_reference_t *head) {
 	if (!tail)
 		return head;
 
@@ -330,7 +329,7 @@ static ogg_reference* ogg_buffer_cat(ogg_reference *tail, ogg_reference *head) {
 	return ogg_buffer_walk(head);
 }
 
-static void _positionB(oggbyte_buffer *b, int pos) {
+static void _positionB(oggbyte_buffer_t *b, int pos) {
 	if (pos < b->pos) {
 		/* start at beginning, scan forward */
 		b->ref = b->baseref;
@@ -340,7 +339,7 @@ static void _positionB(oggbyte_buffer *b, int pos) {
 	}
 }
 
-static void _positionF(oggbyte_buffer *b, int pos) {
+static void _positionF(oggbyte_buffer_t *b, int pos) {
 	/* scan forward for position */
 	while (pos >= b->end) {
 		/* just seek forward */
@@ -351,7 +350,7 @@ static void _positionF(oggbyte_buffer *b, int pos) {
 	}
 }
 
-static int oggbyte_init(oggbyte_buffer *b, ogg_reference *or) {
+static int oggbyte_init(oggbyte_buffer_t *b, ogg_reference_t *or) {
 	memset(b, 0, sizeof(*b));
 	if (or) {
 		b->ref = b->baseref = or;
@@ -363,7 +362,7 @@ static int oggbyte_init(oggbyte_buffer *b, ogg_reference *or) {
 		return -1;
 }
 
-static void oggbyte_set4(oggbyte_buffer *b, uint32_t val, int pos) {
+static void oggbyte_set4(oggbyte_buffer_t *b, uint32_t val, int pos) {
 	int i;
 	_positionB(b, pos);
 	for (i = 0; i < 4; i++) {
@@ -374,13 +373,13 @@ static void oggbyte_set4(oggbyte_buffer *b, uint32_t val, int pos) {
 	}
 }
 
-static unsigned char oggbyte_read1(oggbyte_buffer *b, int pos) {
+static unsigned char oggbyte_read1(oggbyte_buffer_t *b, int pos) {
 	_positionB(b, pos);
 	_positionF(b, pos);
 	return b->ptr[pos - b->pos];
 }
 
-static uint32_t oggbyte_read4(oggbyte_buffer *b, int pos) {
+static uint32_t oggbyte_read4(oggbyte_buffer_t *b, int pos) {
 	uint32_t ret;
 	_positionB(b, pos);
 	_positionF(b, pos);
@@ -394,7 +393,7 @@ static uint32_t oggbyte_read4(oggbyte_buffer *b, int pos) {
 	return ret;
 }
 
-static int64_t oggbyte_read8(oggbyte_buffer *b, int pos) {
+static int64_t oggbyte_read8(oggbyte_buffer_t *b, int pos) {
 	int64_t ret;
 	unsigned char t[7];
 	int i;
@@ -416,49 +415,49 @@ static int64_t oggbyte_read8(oggbyte_buffer *b, int pos) {
 /* Now we get to the actual framing code */
 
 int ogg_page_version(ogg_page *og) {
-	oggbyte_buffer ob;
+	oggbyte_buffer_t ob;
 	if (oggbyte_init(&ob, og->header))
 		return -1;
 	return oggbyte_read1(&ob, 4);
 }
 
 int ogg_page_continued(ogg_page *og) {
-	oggbyte_buffer ob;
+	oggbyte_buffer_t ob;
 	if (oggbyte_init(&ob, og->header))
 		return -1;
 	return oggbyte_read1(&ob, 5) & 0x01;
 }
 
 int ogg_page_bos(ogg_page *og) {
-	oggbyte_buffer ob;
+	oggbyte_buffer_t ob;
 	if (oggbyte_init(&ob, og->header))
 		return -1;
 	return oggbyte_read1(&ob, 5) & 0x02;
 }
 
 int ogg_page_eos(ogg_page *og) {
-	oggbyte_buffer ob;
+	oggbyte_buffer_t ob;
 	if (oggbyte_init(&ob, og->header))
 		return -1;
 	return oggbyte_read1(&ob, 5) & 0x04;
 }
 
 int64_t ogg_page_granulepos(ogg_page *og) {
-	oggbyte_buffer ob;
+	oggbyte_buffer_t ob;
 	if (oggbyte_init(&ob, og->header))
 		return -1;
 	return oggbyte_read8(&ob, 6);
 }
 
 uint32_t ogg_page_serialno(ogg_page *og) {
-	oggbyte_buffer ob;
+	oggbyte_buffer_t ob;
 	if (oggbyte_init(&ob, og->header))
 		return 0xffffffffUL;
 	return oggbyte_read4(&ob, 14);
 }
 
 uint32_t ogg_page_pageno(ogg_page *og) {
-	oggbyte_buffer ob;
+	oggbyte_buffer_t ob;
 	if (oggbyte_init(&ob, og->header))
 		return 0xffffffffUL;
 	return oggbyte_read4(&ob, 18);
@@ -485,7 +484,7 @@ int ogg_page_packets(ogg_page *og) {
 	int i;
 	int n;
 	int count = 0;
-	oggbyte_buffer ob;
+	oggbyte_buffer_t ob;
 	oggbyte_init(&ob, og->header);
 
 	n = oggbyte_read1(&ob, 26);
@@ -548,21 +547,21 @@ const uint32_t crc_lookup[256] = { 0x00000000, 0x04c11db7, 0x09823b6e,
 // memory buffers.  References and buffers are both recycled.  Buffers are passed around and
 // consumed in reference form.
 
-ogg_buffer_state* ogg_buffer_create(void) {
-	ogg_buffer_state *bs = (ogg_buffer_state*)calloc(1, sizeof(*bs));
+ogg_buffer_state_t* ogg_buffer_create(void) {
+	ogg_buffer_state_t *bs = (ogg_buffer_state_t*)calloc(1, sizeof(*bs));
 	return bs;
 }
 
 
 
-ogg_sync_state* ogg_sync_create(void) {
-	ogg_sync_state *oy = calloc(1, sizeof(*oy));
+ogg_sync_state_t* ogg_sync_create(void) {
+	ogg_sync_state_t *oy = calloc(1, sizeof(*oy));
 	memset(oy, 0, sizeof(*oy));
 	oy->bufferpool = ogg_buffer_create();
 	return oy;
 }
 
-int ogg_sync_destroy(ogg_sync_state *oy) {
+int ogg_sync_destroy(ogg_sync_state_t *oy) {
 	if (oy) {
 		ogg_sync_reset(oy);
 		ogg_buffer_destroy(oy->bufferpool);
@@ -572,7 +571,7 @@ int ogg_sync_destroy(ogg_sync_state *oy) {
 	return OGG_SUCCESS;
 }
 
-unsigned char* ogg_sync_bufferin(ogg_sync_state *oy, long bytes) {
+unsigned char* ogg_sync_bufferin(ogg_sync_state_t *oy, long bytes) {
 
 	/* [allocate and] expose a buffer for data submission.
 
@@ -608,14 +607,14 @@ unsigned char* ogg_sync_bufferin(ogg_sync_state *oy, long bytes) {
 
 	/* current fragment used/full; get new fragment */
 	{
-		ogg_reference *new = ogg_buffer_alloc(oy->bufferpool, bytes);
+		ogg_reference_t *new = ogg_buffer_alloc(oy->bufferpool, bytes);
 		oy->fifo_head->next = new;
 		oy->fifo_head = new;
 	}
 	return oy->fifo_head->buffer->data;
 }
 
-int ogg_sync_wrote(ogg_sync_state *oy, long bytes) {
+int ogg_sync_wrote(ogg_sync_state_t *oy, long bytes) {
 	if (!oy->fifo_head)
 		return OGG_EINVAL;
 	if (oy->fifo_head->buffer->size - oy->fifo_head->length
@@ -626,7 +625,7 @@ int ogg_sync_wrote(ogg_sync_state *oy, long bytes) {
 	return OGG_SUCCESS;
 }
 
-static uint32_t _checksum(ogg_reference *or, int bytes) {
+static uint32_t _checksum(ogg_reference_t *or, int bytes) {
 	uint32_t crc_reg = 0;
 	int j, post;
 
@@ -653,8 +652,8 @@ static uint32_t _checksum(ogg_reference *or, int bytes) {
 
  */
 
-long ogg_sync_pageseek(ogg_sync_state *oy, ogg_page *og) {
-	oggbyte_buffer page;
+long ogg_sync_pageseek(ogg_sync_state_t *oy, ogg_page *og) {
+	oggbyte_buffer_t page;
 	long bytes, ret = 0;
 
 	ogg_page_release(og);
@@ -779,7 +778,7 @@ long ogg_sync_pageseek(ogg_sync_state *oy, ogg_page *og) {
  Returns pointers into buffered data; invalidated by next call to
  _stream, _clear, _init, or _buffer */
 
-int ogg_sync_pageout(ogg_sync_state *oy, ogg_page *og) {
+int ogg_sync_pageout(ogg_sync_state_t *oy, ogg_page *og) {
 
 	/* all we need to do is verify a page at the head of the stream
 	 buffer.  If it doesn't verify, we look for the next potential
@@ -808,7 +807,7 @@ int ogg_sync_pageout(ogg_sync_state *oy, ogg_page *og) {
 }
 
 /* clear things to an initial state.  Good to call, eg, before seeking */
-int ogg_sync_reset(ogg_sync_state *oy) {
+int ogg_sync_reset(ogg_sync_state_t *oy) {
 
 	ogg_buffer_release(oy->fifo_tail);
 	oy->fifo_tail = 0;
@@ -821,14 +820,14 @@ int ogg_sync_reset(ogg_sync_state *oy) {
 	return OGG_SUCCESS;
 }
 
-ogg_stream_state* ogg_stream_create(int serialno) {
-	ogg_stream_state *os = calloc(1, sizeof(*os));
+ogg_stream_state_t* ogg_stream_create(int serialno) {
+	ogg_stream_state_t *os = calloc(1, sizeof(*os));
 	os->serialno = serialno;
 	os->pageno = -1;
 	return os;
 }
 
-int ogg_stream_destroy(ogg_stream_state *os) {
+int ogg_stream_destroy(ogg_stream_state_t *os) {
 	if (os) {
 		ogg_buffer_release(os->header_tail);
 		ogg_buffer_release(os->body_tail);
@@ -841,7 +840,7 @@ int ogg_stream_destroy(ogg_stream_state *os) {
 #define FINFLAG 0x80000000UL
 #define FINMASK 0x7fffffffUL
 
-static void _next_lace(oggbyte_buffer *ob, ogg_stream_state *os) {
+static void _next_lace(oggbyte_buffer_t *ob, ogg_stream_state_t *os) {
 	/* search ahead one lace */
 	os->body_fill_next = 0;
 	while (os->laceptr < os->lacing_fill) {
@@ -855,7 +854,7 @@ static void _next_lace(oggbyte_buffer *ob, ogg_stream_state *os) {
 	}
 }
 
-static void _span_queued_page(ogg_stream_state *os) {
+static void _span_queued_page(ogg_stream_state_t *os) {
 	while (!(os->body_fill & FINFLAG)) {
 
 		if (!os->header_tail)
@@ -879,7 +878,7 @@ static void _span_queued_page(ogg_stream_state *os) {
 			/* process/prepare next page, if any */
 
 			long pageno;
-			oggbyte_buffer ob;
+			oggbyte_buffer_t ob;
 			ogg_page og; /* only for parsing header values */
 			og.header = os->header_tail; /* only for parsing header values */
 			pageno = ogg_page_pageno(&og);
@@ -954,7 +953,7 @@ static void _span_queued_page(ogg_stream_state *os) {
 /* add the incoming page to the stream state; we decompose the page
  into packet segments here as well. */
 
-int ogg_stream_pagein(ogg_stream_state *os, ogg_page *og) {
+int ogg_stream_pagein(ogg_stream_state_t *os, ogg_page *og) {
 
 	int serialno = ogg_page_serialno(og);
 	int version = ogg_page_version(og);
@@ -988,7 +987,7 @@ int ogg_stream_pagein(ogg_stream_state *os, ogg_page *og) {
 	return OGG_SUCCESS;
 }
 
-int ogg_stream_reset(ogg_stream_state *os) {
+int ogg_stream_reset(ogg_stream_state_t *os) {
 
 	ogg_buffer_release(os->header_tail);
 	ogg_buffer_release(os->body_tail);
@@ -1013,13 +1012,13 @@ int ogg_stream_reset(ogg_stream_state *os) {
 	return OGG_SUCCESS;
 }
 
-int ogg_stream_reset_serialno(ogg_stream_state *os, int serialno) {
+int ogg_stream_reset_serialno(ogg_stream_state_t *os, int serialno) {
 	ogg_stream_reset(os);
 	os->serialno = serialno;
 	return OGG_SUCCESS;
 }
 
-static int _packetout(ogg_stream_state *os, ogg_packet *op, int adv) {
+static int _packetout(ogg_stream_state_t *os, ogg_packet *op, int adv) {
 
 	ogg_packet_release(op);
 	_span_queued_page(os);
@@ -1067,7 +1066,7 @@ static int _packetout(ogg_stream_state *os, ogg_packet *op, int adv) {
 	}
 
 	if (adv) {
-		oggbyte_buffer ob;
+		oggbyte_buffer_t ob;
 		oggbyte_init(&ob, os->header_tail);
 
 		/* split the body contents off */
@@ -1100,11 +1099,11 @@ static int _packetout(ogg_stream_state *os, ogg_packet *op, int adv) {
 	return 1;
 }
 
-int ogg_stream_packetout(ogg_stream_state *os, ogg_packet *op) {
+int ogg_stream_packetout(ogg_stream_state_t *os, ogg_packet *op) {
 	return _packetout(os, op, 1);
 }
 
-int ogg_stream_packetpeek(ogg_stream_state *os, ogg_packet *op) {
+int ogg_stream_packetpeek(ogg_stream_state_t *os, ogg_packet *op) {
 	return _packetout(os, op, 0);
 }
 

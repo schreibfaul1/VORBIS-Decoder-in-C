@@ -150,25 +150,25 @@ inline int32_t CLIP_TO_15(int32_t x) {
 }
 
 //-------------------------------------------------------------------------------------------------
-void _span(oggpack_buffer *b);
+void _span(oggpack_buffer_t *b);
 int _ilog(uint32_t v);
 int _ilog(uint32_t v);
-uint32_t decpack(int32_t entry, int32_t used_entry, int32_t quantvals, codebook *b, oggpack_buffer *opb, int maptype);
+uint32_t decpack(int32_t entry, int32_t used_entry, int32_t quantvals, codebook *b, oggpack_buffer_t *opb, int maptype);
 int32_t _float32_unpack(int32_t val, int *point);
 int _determine_node_bytes(int32_t used, int leafwidth);
 int _determine_leaf_words(int nodeb, int leafwidth);
-int _make_words(char *l, int32_t n, uint32_t *r, int32_t quantvals, codebook *b, oggpack_buffer *opb, int maptype);
-int _make_decode_table(codebook *s, char *lengthlist, int32_t quantvals, oggpack_buffer *opb, int maptype);
+int _make_words(char *l, int32_t n, uint32_t *r, int32_t quantvals, codebook *b, oggpack_buffer_t *opb, int maptype);
+int _make_decode_table(codebook *s, char *lengthlist, int32_t quantvals, oggpack_buffer_t *opb, int maptype);
 int32_t _book_maptype1_quantvals(codebook *b);
 void vorbis_book_clear(codebook *b);
-int vorbis_book_unpack(oggpack_buffer *opb, codebook *s);
-uint32_t decode_packed_entry_number(codebook *book,	oggpack_buffer *b);
-int32_t vorbis_book_decode(codebook *book, oggpack_buffer *b);
-int decode_map(codebook *s, oggpack_buffer *b, int32_t *v, int point);
-int32_t vorbis_book_decodevs_add(codebook *book, int32_t *a, oggpack_buffer *b,	int n, int point);
-int32_t vorbis_book_decodev_add(codebook *book, int32_t *a, oggpack_buffer *b, int n, int point);
-int32_t vorbis_book_decodev_set(codebook *book, int32_t *a, oggpack_buffer *b, int n, int point);
-int32_t vorbis_book_decodevv_add(codebook *book, int32_t **a, int32_t offset, int ch, oggpack_buffer *b, int n, int point);
+int vorbis_book_unpack(oggpack_buffer_t *opb, codebook *s);
+uint32_t decode_packed_entry_number(codebook *book,	oggpack_buffer_t *b);
+int32_t vorbis_book_decode(codebook *book, oggpack_buffer_t *b);
+int decode_map(codebook *s, oggpack_buffer_t *b, int32_t *v, int point);
+int32_t vorbis_book_decodevs_add(codebook *book, int32_t *a, oggpack_buffer_t *b,	int n, int point);
+int32_t vorbis_book_decodev_add(codebook *book, int32_t *a, oggpack_buffer_t *b, int n, int point);
+int32_t vorbis_book_decodev_set(codebook *book, int32_t *a, oggpack_buffer_t *b, int n, int point);
+int32_t vorbis_book_decodevv_add(codebook *book, int32_t **a, int32_t offset, int ch, oggpack_buffer_t *b, int n, int point);
 int vorbis_dsp_restart(vorbis_dsp_state *v);
 vorbis_dsp_state* vorbis_dsp_create(vorbis_info *vi);
 void vorbis_dsp_destroy(vorbis_dsp_state *v);
@@ -185,21 +185,21 @@ int32_t toBARK(int n);
 int32_t vorbis_invsqlook_i(int32_t a, int32_t e);
 void vorbis_lsp_to_curve(int32_t *curve, int n, int ln, int32_t *lsp, int m, int32_t amp, int32_t ampoffset, int32_t nyq);
 void floor0_free_info(vorbis_info_floor *i);
-vorbis_info_floor* floor0_info_unpack(vorbis_info *vi, oggpack_buffer *opb);
+vorbis_info_floor* floor0_info_unpack(vorbis_info *vi, oggpack_buffer_t *opb);
 int floor0_memosize(vorbis_info_floor *i);
 int32_t* floor0_inverse1(vorbis_dsp_state *vd, vorbis_info_floor *i, int32_t *lsp);
 int floor0_inverse2(vorbis_dsp_state *vd, vorbis_info_floor *i, int32_t *lsp, int32_t *out);
 void floor1_free_info(vorbis_info_floor *i);
 void vorbis_mergesort(uint8_t *index, uint16_t *vals, uint16_t n);
-vorbis_info_floor* floor1_info_unpack(vorbis_info *vi, oggpack_buffer *opb);
+vorbis_info_floor* floor1_info_unpack(vorbis_info *vi, oggpack_buffer_t *opb);
 int render_point(int x0, int x1, int y0, int y1, int x);
 int floor1_memosize(vorbis_info_floor *i);
 int32_t* floor1_inverse1(vorbis_dsp_state *vd, vorbis_info_floor *in, int32_t *fit_value);
 int floor1_inverse2(vorbis_dsp_state *vd, vorbis_info_floor *in, int32_t *fit_value, int32_t *out);
 void mapping_clear_info(vorbis_info_mapping *info);
-int mapping_info_unpack(vorbis_info_mapping *info, vorbis_info *vi,	oggpack_buffer *opb);
+int mapping_info_unpack(vorbis_info_mapping *info, vorbis_info *vi,	oggpack_buffer_t *opb);
 int mapping_inverse(vorbis_dsp_state *vd, vorbis_info_mapping *info);
-void _v_readstring(oggpack_buffer *o, char *buf, int bytes);
+void _v_readstring(oggpack_buffer_t *o, char *buf, int bytes);
 void vorbis_comment_init(vorbis_comment *vc);
 int tagcompare(const char *s1, const char *s2, int n);
 char* vorbis_comment_query(vorbis_comment *vc, char *tag, int count);
@@ -208,9 +208,9 @@ void vorbis_comment_clear(vorbis_comment *vc);
 int vorbis_info_blocksize(vorbis_info *vi, int zo);
 void vorbis_info_init(vorbis_info *vi);
 void vorbis_info_clear(vorbis_info *vi);
-int _vorbis_unpack_info(vorbis_info *vi, oggpack_buffer *opb);
-int _vorbis_unpack_comment(vorbis_comment *vc, oggpack_buffer *opb);
-int _vorbis_unpack_books(vorbis_info *vi, oggpack_buffer *opb);
+int _vorbis_unpack_info(vorbis_info *vi, oggpack_buffer_t *opb);
+int _vorbis_unpack_comment(vorbis_comment *vc, oggpack_buffer_t *opb);
+int _vorbis_unpack_books(vorbis_info *vi, oggpack_buffer_t *opb);
 int vorbis_dsp_headerin(vorbis_info *vi, vorbis_comment *vc, ogg_packet *op);
 void presymmetry(int32_t *in, int n2, int step);
 void mdct_butterfly_8(int32_t *x);
@@ -228,7 +228,7 @@ void mdct_unroll_lap(int n0, int n1, int lW, int W, int *in, int *right,
 		const int *w0, const int *w1, short int *out, int step, int start, /* samples, this frame */
 		int end /* samples, this frame */);
 void res_clear_info(vorbis_info_residue *info);
-int res_unpack(vorbis_info_residue *info, vorbis_info *vi, oggpack_buffer *opb);
+int res_unpack(vorbis_info_residue *info, vorbis_info *vi, oggpack_buffer_t *opb);
 int res_inverse(vorbis_dsp_state *vd, vorbis_info_residue *info, int32_t **in, int *nonzero, int ch);
 
 
@@ -242,7 +242,7 @@ int res_inverse(vorbis_dsp_state *vd, vorbis_info_residue *info, int32_t **in, i
 //extern void mapping_clear_info(vorbis_info_mapping*);
 //extern int mapping_inverse(struct vorbis_dsp_state*, vorbis_info_mapping*);
 extern void res_clear_info(vorbis_info_residue *info);
-extern int res_unpack(vorbis_info_residue *info, vorbis_info *vi, oggpack_buffer *opb);
+extern int res_unpack(vorbis_info_residue *info, vorbis_info *vi, oggpack_buffer_t *opb);
 extern int res_inverse(vorbis_dsp_state*, vorbis_info_residue *info, int32_t **in, int *nonzero, int ch);
 
 //extern int32_t vorbis_packet_blocksize(vorbis_info *vi, ogg_packet *op);

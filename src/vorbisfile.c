@@ -966,7 +966,7 @@ int64_t ov_time_total(OggVorbis_File *vf,int i){
    returns zero on success, nonzero on failure */
 
 int ov_raw_seek(OggVorbis_File *vf,int64_t pos){
-  ogg_stream_state *work_os=NULL;
+  ogg_stream_state_t *work_os=NULL;
   ogg_page og={0,0,0,0};
   ogg_packet op={0,0,0,0,0,0};
   
