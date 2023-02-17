@@ -23,7 +23,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-#include "ogg.h"
+#include "vorbisfile.h"
 #include "vorbisDecoder.h"
 
 
