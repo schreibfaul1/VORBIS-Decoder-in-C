@@ -23,6 +23,7 @@
 #include <string.h>
 #include "misc.h"
 #include "vorbisfile.h"
+#include "framing.h"
 
 /* A complete description of Ogg framing exists in docs/framing.html */
 
@@ -46,11 +47,41 @@ ogg_reference* _fetch_ref(ogg_buffer_state *bs) {
 	or->next = 0;
 	return or;
 }
+
+//-------------------------------------------------------------------------------------------------
+ogg_buffer* _fetch_buffer(ogg_buffer_state *bs, long bytes) {
+	ogg_buffer *ob;
+	bs->outstanding++;
+
+	/* do we have an unused buffer sitting in the pool? */
+	if (bs->unused_buffers) {
+		ob = bs->unused_buffers;
+		bs->unused_buffers = ob->ptr.next;
+
+		/* if the unused buffer is too small, grow it */
+		if (ob->size < bytes) {
+			ob->data = (uint8_t*)realloc(ob->data, bytes);
+			ob->size = bytes;
+		}
+	} else {
+		/* allocate a new buffer */
+		ob = (ogg_buffer*)malloc(sizeof(*ob));
+		ob->data = (uint8_t*)malloc(bytes < 16 ? 16 : bytes);
+		ob->size = bytes;
+	}
+
+	ob->refcount = 1;
+	ob->ptr.owner = bs;
+	return ob;
+}
+
+
+
 //-------------------------------------------------------------------------------------------------
 /* fetch a reference pointing to a fresh, initially continguous buffer
  of at least [bytes] length */
 ogg_reference* ogg_buffer_alloc(ogg_buffer_state *bs, long bytes) {
-	ogg_buffer *ob = _fetch_buffer(bs, bytes);
+	ogg_buffer *ob =  _fetch_buffer(bs, bytes);
 	ogg_reference *or = _fetch_ref(bs);
 	or->buffer = ob;
 	return or;
@@ -191,6 +222,47 @@ static ogg_reference* ogg_buffer_split(ogg_reference **tail,
 	}
 	return ret;
 }
+//-------------------------------------------------------------------------------------------------
+// destruction is 'lazy'; there may be memory references outstanding, and yanking the buffer state
+// out from underneath would be antisocial.  Dealloc what is currently unused and have _release_one
+// watch for the stragglers to come in.  When they do, finish destruction.
+
+/* call the helper while holding lock */
+void _ogg_buffer_destroy(ogg_buffer_state *bs) {
+	ogg_buffer *bt;
+	ogg_reference *rt;
+
+	if (bs->shutdown) {
+
+		bt = bs->unused_buffers;
+		rt = bs->unused_references;
+
+		while (bt) {
+			ogg_buffer *b = bt;
+			bt = b->ptr.next;
+			if (b->data)
+				free(b->data);
+			free(b);
+		}
+		bs->unused_buffers = 0;
+		while (rt) {
+			ogg_reference *r = rt;
+			rt = r->next;
+			free(r);
+		}
+		bs->unused_references = 0;
+
+		if (!bs->outstanding)
+			free(bs);
+
+	}
+}
+//-------------------------------------------------------------------------------------------------
+void ogg_buffer_destroy(ogg_buffer_state *bs) {
+	bs->shutdown = 1;
+	_ogg_buffer_destroy(bs);
+}
+
 
 static void ogg_buffer_release_one(ogg_reference *or) {
 	ogg_buffer *ob = or->buffer;
@@ -470,6 +542,18 @@ const uint32_t crc_lookup[256] = { 0x00000000, 0x04c11db7, 0x09823b6e,
 		0x84fbdbd0, 0x9abc8bd5, 0x9e7d9662, 0x933eb0bb, 0x97ffad0c, 0xafb010b1,
 		0xab710d06, 0xa6322bdf, 0xa2f33668, 0xbcb4666d, 0xb8757bda, 0xb5365d03,
 		0xb1f740b4 };
+
+//-------------------------------------------------------------------------------------------------
+// centralized Ogg memory management based on linked lists of  references to refcounted basic,
+// memory buffers.  References and buffers are both recycled.  Buffers are passed around and
+// consumed in reference form.
+
+ogg_buffer_state* ogg_buffer_create(void) {
+	ogg_buffer_state *bs = (ogg_buffer_state*)calloc(1, sizeof(*bs));
+	return bs;
+}
+
+
 
 ogg_sync_state* ogg_sync_create(void) {
 	ogg_sync_state *oy = calloc(1, sizeof(*oy));

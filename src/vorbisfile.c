@@ -64,7 +64,7 @@ int ov_raw_seek(OggVorbis_File *vf,int64_t pos); // proto
 
 
 /* read a little more data from the file/pipe into the ogg_sync framer */
-static long _get_data(OggVorbis_File *vf){
+long _get_data(OggVorbis_File *vf){
   errno=0;
   if(vf->datasource){
     unsigned char *buffer=ogg_sync_bufferin(vf->oy,CHUNKSIZE);
@@ -77,7 +77,7 @@ static long _get_data(OggVorbis_File *vf){
 }
 
 /* save a tiny smidge of verbosity to make the code more readable */
-static void _seek_helper(OggVorbis_File *vf,int64_t offset){
+void _seek_helper(OggVorbis_File *vf,int64_t offset){
   if(vf->datasource){ 
     (vf->callbacks.seek_func)(vf->datasource, offset, SEEK_SET);
     vf->offset=offset;
@@ -103,7 +103,7 @@ static void _seek_helper(OggVorbis_File *vf,int64_t offset){
 
               produces a refcounted page */
 
-static int64_t _get_next_page(OggVorbis_File *vf,ogg_page *og, int64_t boundary){
+int64_t _get_next_page(OggVorbis_File *vf,ogg_page *og, int64_t boundary){
   if(boundary>0)boundary+=vf->offset;
   while(1){
     long more;
@@ -141,7 +141,7 @@ static int64_t _get_next_page(OggVorbis_File *vf,ogg_page *og, int64_t boundary)
    read. */
 /* returns offset or OV_EREAD, OV_FAULT and produces a refcounted page */
 
-static int64_t _get_prev_page(OggVorbis_File *vf,ogg_page *og){
+int64_t _get_prev_page(OggVorbis_File *vf,ogg_page *og){
   int64_t begin=vf->offset;
   int64_t end=begin;
   int64_t ret;
@@ -177,7 +177,7 @@ static int64_t _get_prev_page(OggVorbis_File *vf,ogg_page *og){
    (has to begin by knowing the offset of the lb's initial page).
    Recurses for each link so it can alloc the link storage after
    finding them all, then unroll and fill the cache at the same time */
-static int _bisect_forward_serialno(OggVorbis_File *vf,
+int _bisect_forward_serialno(OggVorbis_File *vf,
 				    int64_t begin,
 				    int64_t searched,
 				    int64_t end,
@@ -233,7 +233,7 @@ static int _bisect_forward_serialno(OggVorbis_File *vf,
   return 0;
 }
 
-static int _decode_clear(OggVorbis_File *vf){
+int _decode_clear(OggVorbis_File *vf){
   if(vf->ready_state==INITSET){
     vorbis_dsp_destroy(vf->vd);
     vf->vd=0;
@@ -253,7 +253,7 @@ static int _decode_clear(OggVorbis_File *vf){
 /* consumes the page that's passed in (if any) */
 /* state is LINKSET upon successful return */
 
-static int _fetch_headers(OggVorbis_File *vf,
+int _fetch_headers(OggVorbis_File *vf,
 			  vorbis_info *vi,
 			  vorbis_comment *vc,
 			  uint32_t *serialno,
@@ -320,7 +320,7 @@ static int _fetch_headers(OggVorbis_File *vf,
 /* we no longer preload all vorbis_info (and the associated
    codec_setup) structs.  Call this to seek and fetch the info from
    the bitstream, if needed */
-static int _set_link_number(OggVorbis_File *vf,int link){
+int _set_link_number(OggVorbis_File *vf,int link){
   if(link != vf->current_link) _decode_clear(vf);
   if(vf->ready_state<STREAMSET){
     _seek_helper(vf,vf->offsets[link]);
@@ -332,7 +332,7 @@ static int _set_link_number(OggVorbis_File *vf,int link){
   return 0;
 }
 
-static int _set_link_number_preserve_pos(OggVorbis_File *vf,int link){
+int _set_link_number_preserve_pos(OggVorbis_File *vf,int link){
   int64_t pos=vf->offset;
   int ret=_set_link_number(vf,link);
   if(ret)return ret;
@@ -351,7 +351,7 @@ static int _set_link_number_preserve_pos(OggVorbis_File *vf,int link){
    able to open and use damaged bitstreams as well as we can.  Just
    watch out for missing information for links in the OggVorbis_File
    struct */
-static void _prefetch_all_offsets(OggVorbis_File *vf, int64_t dataoffset){
+void _prefetch_all_offsets(OggVorbis_File *vf, int64_t dataoffset){
   ogg_page og={0,0,0,0};
   int i;
   int64_t ret;
@@ -451,7 +451,7 @@ static void _prefetch_all_offsets(OggVorbis_File *vf, int64_t dataoffset){
   ogg_page_release(&og);
 }
 
-static int _make_decode_ready(OggVorbis_File *vf){
+int _make_decode_ready(OggVorbis_File *vf){
   int i;
   switch(vf->ready_state){
   case OPENED:
@@ -475,7 +475,7 @@ static int _make_decode_ready(OggVorbis_File *vf){
   
 }
 
-static int _open_seekable2(OggVorbis_File *vf){
+int _open_seekable2(OggVorbis_File *vf){
   uint32_t serialno=vf->current_serialno;
   uint32_t tempserialno;
   int64_t dataoffset=vf->offset, end;
@@ -525,7 +525,7 @@ static int _open_seekable2(OggVorbis_File *vf){
 	    1) got a packet 
 */
 
-static int _fetch_and_process_packet(OggVorbis_File *vf,
+int _fetch_and_process_packet(OggVorbis_File *vf,
 				     int readp,
 				     int spanp){
 
@@ -687,12 +687,12 @@ static int _fetch_and_process_packet(OggVorbis_File *vf,
 
 /* if, eg, 64 bit stdio is configured by default, this will build with
    fseek64 */
-static int _fseek64_wrap(FILE *f,int64_t off,int whence){
+int _fseek64_wrap(FILE *f,int64_t off,int whence){
   if(f==NULL)return -1;
   return fseek(f,off,whence);
 }
 
-static int _ov_open1(void *f,OggVorbis_File *vf,char *initial,
+int _ov_open1(void *f,OggVorbis_File *vf,char *initial,
 		     long ibytes, ov_callbacks callbacks){
   int offsettest=(f?callbacks.seek_func(f,0,SEEK_CUR):-1);
   int ret;
@@ -736,7 +736,7 @@ static int _ov_open1(void *f,OggVorbis_File *vf,char *initial,
   return ret;
 }
 
-static int _ov_open2(OggVorbis_File *vf){
+int _ov_open2(OggVorbis_File *vf){
   if(vf->ready_state < OPENED)
     vf->ready_state=OPENED;
   if(vf->seekable){

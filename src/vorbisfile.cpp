@@ -32,15 +32,6 @@
 #define  LINKSET   4 /* serialno and link set to current link */
 #define  INITSET   5
 
-const uint32_t mask[]=
-{0x00000000,0x00000001,0x00000003,0x00000007,0x0000000f,
- 0x0000001f,0x0000003f,0x0000007f,0x000000ff,0x000001ff,
- 0x000003ff,0x000007ff,0x00000fff,0x00001fff,0x00003fff,
- 0x00007fff,0x0000ffff,0x0001ffff,0x0003ffff,0x0007ffff,
- 0x000fffff,0x001fffff,0x003fffff,0x007fffff,0x00ffffff,
- 0x01ffffff,0x03ffffff,0x07ffffff,0x0fffffff,0x1fffffff,
- 0x3fffffff,0x7fffffff,0xffffffff };
-
 
 /* A 'chained bitstream' is a Vorbis bitstream that contains more than
  one logical bitstream arranged end to end (the only form of Ogg
@@ -1674,101 +1665,11 @@ int32_t ov_read(OggVorbis_File *vf, void *buffer, int bytes_req) {
 
 	}
 }
-//-------------------------------------------------------------------------------------------------
-void oggpack_readinit(oggpack_buffer *b, ogg_reference *r) {
-	memset(b, 0, sizeof(*b));
 
-	b->tail = b->head = r;
-	b->count = 0;
-	b->headptr = b->head->buffer->data + b->head->begin;
-	b->headend = b->head->length;
-	_span(b);
-}
-//-------------------------------------------------------------------------------------------------
 
-/* Read in bits without advancing the bitptr; bits <= 32 */
-int32_t oggpack_look(oggpack_buffer *b, int bits) {
-	uint32_t m = mask[bits];
-	uint32_t ret;
 
-	bits += b->headbit;
 
-	if (bits >= b->headend << 3) {
-		int end = b->headend;
-		uint8_t *ptr = b->headptr;
-		ogg_reference *head = b->head;
 
-		if (end < 0)
-			return -1;
-
-		if (bits) {
-			_lookspan();
-			ret = *ptr++ >> b->headbit;
-			if (bits > 8) {
-				--end;
-				_lookspan();
-				ret |= *ptr++ << (8 - b->headbit);
-				if (bits > 16) {
-					--end;
-					_lookspan();
-					ret |= *ptr++ << (16 - b->headbit);
-					if (bits > 24) {
-						--end;
-						_lookspan();
-						ret |= *ptr++ << (24 - b->headbit);
-						if (bits > 32 && b->headbit) {
-							--end;
-							_lookspan();
-							ret |= *ptr << (32 - b->headbit);
-						}
-					}
-				}
-			}
-		}
-
-	} else {
-
-		/* make this a switch jump-table */
-		ret = b->headptr[0] >> b->headbit;
-		if (bits > 8) {
-			ret |= b->headptr[1] << (8 - b->headbit);
-			if (bits > 16) {
-				ret |= b->headptr[2] << (16 - b->headbit);
-				if (bits > 24) {
-					ret |= b->headptr[3] << (24 - b->headbit);
-					if (bits > 32 && b->headbit)
-						ret |= b->headptr[4] << (32 - b->headbit);
-				}
-			}
-		}
-	}
-
-	ret &= m;
-	return ret;
-}
-//-------------------------------------------------------------------------------------------------
-/* limited to 32 at a time */
-void oggpack_adv(oggpack_buffer *b, int bits) {
-	bits += b->headbit;
-	b->headbit = bits & 7;
-	b->headend -= (bits >> 3);
-	b->headptr += (bits >> 3);
-	if (b->headend < 1)
-		_span(b);
-}
-//-------------------------------------------------------------------------------------------------
-int oggpack_eop(oggpack_buffer *b) {
-	if (b->headend < 0)
-		return -1;
-	return 0;
-}
-//-------------------------------------------------------------------------------------------------
-/* bits <= 32 */
-int32_t oggpack_read(oggpack_buffer *b, int bits) {
-	int32_t ret = oggpack_look(b, bits);
-	oggpack_adv(b, bits);
-	return (ret);
-}
 //-------------------------------------------------------------------------------------------------
 int32_t oggpack_bytes(oggpack_buffer *b) {
 	if (b->headend < 0)
@@ -1781,82 +1682,6 @@ int32_t oggpack_bits(oggpack_buffer *b) {
 		return (b->count + b->head->length) * 8;
 	return (b->count + b->head->length - b->headend) * 8 + b->headbit;
 }
-//-------------------------------------------------------------------------------------------------
-// centralized Ogg memory management based on linked lists of  references to refcounted basic,
-// memory buffers.  References and buffers are both recycled.  Buffers are passed around and
-// consumed in reference form.
-
-ogg_buffer_state* ogg_buffer_create(void) {
-	ogg_buffer_state *bs = (ogg_buffer_state*)calloc(1, sizeof(*bs));
-	return bs;
-}
-//-------------------------------------------------------------------------------------------------
-// destruction is 'lazy'; there may be memory references outstanding, and yanking the buffer state
-// out from underneath would be antisocial.  Dealloc what is currently unused and have _release_one
-// watch for the stragglers to come in.  When they do, finish destruction.
-
-/* call the helper while holding lock */
-void _ogg_buffer_destroy(ogg_buffer_state *bs) {
-	ogg_buffer *bt;
-	ogg_reference *rt;
-
-	if (bs->shutdown) {
-
-		bt = bs->unused_buffers;
-		rt = bs->unused_references;
-
-		while (bt) {
-			ogg_buffer *b = bt;
-			bt = b->ptr.next;
-			if (b->data)
-				free(b->data);
-			free(b);
-		}
-		bs->unused_buffers = 0;
-		while (rt) {
-			ogg_reference *r = rt;
-			rt = r->next;
-			free(r);
-		}
-		bs->unused_references = 0;
-
-		if (!bs->outstanding)
-			free(bs);
-
-	}
-}
-//-------------------------------------------------------------------------------------------------
-void ogg_buffer_destroy(ogg_buffer_state *bs) {
-	bs->shutdown = 1;
-	_ogg_buffer_destroy(bs);
-}
-//-------------------------------------------------------------------------------------------------
-ogg_buffer* _fetch_buffer(ogg_buffer_state *bs, long bytes) {
-	ogg_buffer *ob;
-	bs->outstanding++;
-
-	/* do we have an unused buffer sitting in the pool? */
-	if (bs->unused_buffers) {
-		ob = bs->unused_buffers;
-		bs->unused_buffers = ob->ptr.next;
-
-		/* if the unused buffer is too small, grow it */
-		if (ob->size < bytes) {
-			ob->data = (uint8_t*)realloc(ob->data, bytes);
-			ob->size = bytes;
-		}
-	} else {
-		/* allocate a new buffer */
-		ob = (ogg_buffer*)malloc(sizeof(*ob));
-		ob->data = (uint8_t*)malloc(bytes < 16 ? 16 : bytes);
-		ob->size = bytes;
-	}
-
-	ob->refcount = 1;
-	ob->ptr.owner = bs;
-	return ob;
-}
-
 
 
 
