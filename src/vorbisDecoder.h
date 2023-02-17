@@ -73,80 +73,6 @@ typedef struct codebook{
 struct vorbis_dsp_state;
 typedef struct vorbis_dsp_state vorbis_dsp_state;
 
-typedef struct vorbis_info{
-  int version;  // The below bitrate declarations are *hints*. Combinations of the three values carry
-  int channels; // the following implications: all three set to the same value: implies a fixed rate bitstream
-  int32_t rate;    // only nominal set:  implies a VBR stream that averages the nominal bitrate.  No hard
-  int32_t bitrate_upper; // upper/lower limit upper and or lower set:  implies a VBR bitstream that obeys the
-  int32_t bitrate_nominal; // bitrate limits. nominal may also be set to give a nominal rate. none set:
-  int32_t bitrate_lower; //  the coder does not care to speculate.
-  int32_t bitrate_window;
-  void *codec_setup;
-} vorbis_info;
-
-typedef void vorbis_info_floor;
-
-struct vorbis_dsp_state { // vorbis_dsp_state buffers the current vorbis audio analysis/synthesis state.
-	vorbis_info *vi;      // The DSP state beint32_ts to a specific logical bitstream
-	oggpack_buffer opb;
-	int32_t **work;
-	int32_t **mdctright;
-	int out_begin;
-	int out_end;
-	int32_t lW;
-	int32_t W;
-	int64_t granulepos;
-	int64_t sequence;
-	int64_t sample_count;
-};
-
-typedef struct {
-	int order;
-	int32_t rate;
-	int32_t barkmap;
-	int ampbits;
-	int ampdB;
-	int numbooks; /* <= 16 */
-	char books[16];
-} vorbis_info_floor0;
-
-typedef struct {
-	char class_dim; /* 1 to 8 */
-	char class_subs; /* 0,1,2,3 (bits: 1<<n poss) */
-	uint8_t class_book; /* subs ^ dim entries */
-	uint8_t class_subbook[8]; /* [VIF_CLASS][subs] */
-} floor1class;
-
-typedef struct {
-	floor1class *_class; /* [VIF_CLASS] */
-	uint8_t *partitionclass; /* [VIF_PARTS]; 0 to 15 */
-	uint16_t *postlist; /* [VIF_POSIT+2]; first two implicit */
-	uint8_t *forward_index; /* [VIF_POSIT+2]; */
-	uint8_t *hineighbor; /* [VIF_POSIT]; */
-	uint8_t *loneighbor; /* [VIF_POSIT]; */
-	int partitions; /* 0 to 31 */
-	int posts;
-	int mult; /* 1 2 3 or 4 */
-} vorbis_info_floor1;
-
-typedef struct vorbis_info_residue {
-	int type;
-	uint8_t *stagemasks;
-	uint8_t *stagebooks;
-	/* block-partitioned VQ coded straight residue */
-	int32_t begin;
-	int32_t end;
-	/* first stage (lossless partitioning) */
-	int grouping; /* group n vectors per partition */
-	char partitions; /* possible codebooks for a partition */
-	uint8_t groupbook; /* huffbook for partitioning */
-	char stages;
-} vorbis_info_residue;
-
-typedef struct {  // mode
-	uint8_t blockflag;
-	uint8_t mapping;
-} vorbis_info_mode;
 
 typedef struct coupling_step { // Mapping backend generic
 	uint8_t mag;
@@ -181,43 +107,8 @@ typedef struct codec_setup_info { // Vorbis supports only short and int32_t bloc
 	codebook *book_param;
 } codec_setup_info;
 
-typedef struct {
-	size_t (*read_func)(void *ptr, size_t size, size_t nmemb, void *datasource);
-	int (*seek_func)(void *datasource, int64_t offset, int whence);
-	int (*close_func)(void *datasource);
-	int32_t (*tell_func)(void *datasource);
-} ov_callbacks;
 
-typedef struct vorbis_comment {
-	char **user_comments;
-	int *comment_lengths;
-	int comments;
-	char *vendor;
-} vorbis_comment;
 
-typedef struct OggVorbis_File {
-	void *datasource; /* Pointer to a FILE *, etc. */
-	int seekable;
-	int64_t offset;
-	int64_t end;
-	ogg_sync_state *oy; //If the FILE handle isn't seekable (eg, a pipe), only the current
-    int              links;//stream appears */
-    int64_t     *offsets;
-    int64_t     *dataoffsets;
-    uint32_t    *serialnos;
-    int64_t     *pcmlengths;
-    vorbis_info     vi;
-    vorbis_comment  vc;
-    int64_t      pcm_offset;/* Decoding working state local storage */
-    int              ready_state;
-    uint32_t     current_serialno;
-    int              current_link;
-    int64_t      bittrack;
-    int64_t      samptrack;
-    ogg_stream_state *os; /* take physical pages, weld into a logical stream of packets */
-    vorbis_dsp_state *vd; /* central working state for the packet->PCM decoder */
-   ov_callbacks callbacks;
-} OggVorbis_File;
 
 
 //-------------------------------------------------------------------------------------------------
@@ -260,13 +151,6 @@ inline int32_t CLIP_TO_15(int32_t x) {
 
 //-------------------------------------------------------------------------------------------------
 void _span(oggpack_buffer *b);
-void oggpack_readinit(oggpack_buffer *b, ogg_reference *r);
-int32_t oggpack_look(oggpack_buffer *b, int bits);
-void oggpack_adv(oggpack_buffer *b, int bits);
-int oggpack_eop(oggpack_buffer *b);
-int32_t oggpack_read(oggpack_buffer *b, int bits);
-int32_t oggpack_bytes(oggpack_buffer *b);
-int32_t oggpack_bits(oggpack_buffer *b);
 int _ilog(uint32_t v);
 int _ilog(uint32_t v);
 uint32_t decpack(int32_t entry, int32_t used_entry, int32_t quantvals, codebook *b, oggpack_buffer *opb, int maptype);
