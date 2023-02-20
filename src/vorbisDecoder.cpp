@@ -8,6 +8,7 @@
 #include <assert.h>
 #include "vorbisfile.h"
 
+
 const int32_t FLOOR_fromdB_LOOKUP[256] = {
 	0x000000e5, 0x000000f4, 0x00000103, 0x00000114, 0x00000126, 0x00000139, 0x0000014e, 0x00000163, 0x0000017a,
 	0x00000193, 0x000001ad, 0x000001c9, 0x000001e7, 0x00000206, 0x00000228, 0x0000024c, 0x00000272, 0x0000029b,
@@ -1303,8 +1304,8 @@ int ilog(uint32_t v) {
 }
 //---------------------------------------------------------------------------------------------------------------------
 
-int _ilog(uint32_t v) {
-	int ret = 0;
+uint8_t _ilog(uint32_t v) {
+	uint8_t ret = 0;
 	while(v) {
 		ret++;
 		v >>= 1;
@@ -1389,7 +1390,6 @@ int32_t oggpack_read(oggpack_buffer *b, int bits) {
 //---------------------------------------------------------------------------------------------------------------------
 uint32_t decpack(int32_t entry, int32_t used_entry, int32_t quantvals, codebook *b, oggpack_buffer *opb, int maptype) {
 	uint32_t ret = 0;
-	uint32_t j;
 
 	switch(b->dec_type) {
 		case 0:
@@ -1399,7 +1399,7 @@ uint32_t decpack(int32_t entry, int32_t used_entry, int32_t quantvals, codebook 
 			if(maptype == 1) {
 				/* vals are already read into temporary column vector here */
 				assert(b->dim >= 0);
-				for(j = 0; j < (uint32_t)b->dim; j++) {
+				for(uint8_t j = 0; j < b->dim; j++) {
 					uint32_t off = (uint32_t)(entry % quantvals);
 					entry /= quantvals;
 					assert((b->q_bits * j) >= 0);
@@ -1409,7 +1409,7 @@ uint32_t decpack(int32_t entry, int32_t used_entry, int32_t quantvals, codebook 
 			}
 			else {
 				assert(b->dim >= 0);
-				for(j = 0; j < (uint32_t)b->dim; j++){
+				for(uint8_t j = 0; j < b->dim; j++){
 					assert((b->q_bits * j) >= 0);
 					uint32_t shift = (uint32_t)b->q_bits * j;
 					int32_t _ret = oggpack_read(opb, b->q_bits) << shift;
@@ -1421,7 +1421,7 @@ uint32_t decpack(int32_t entry, int32_t used_entry, int32_t quantvals, codebook 
 
 		case 2:
 		    assert(b->dim >= 0);
-			for(j = 0; j < (uint32_t)b->dim; j++) {
+			for(uint8_t j = 0; j < b->dim; j++) {
 				uint32_t off = uint32_t(entry % quantvals);
 				entry /= quantvals;
 				assert(b->q_pack * j >= 0);
@@ -1473,7 +1473,7 @@ int _determine_leaf_words(int nodeb, int leafwidth) {
 }
 //---------------------------------------------------------------------------------------------------------------------
 /* given a list of word lengths, number of used entries, and byte width of a leaf, generate the decode table */
-int _make_words(char *l, int32_t n, uint32_t *r, int32_t quantvals, codebook *b, oggpack_buffer *opb, int maptype) {
+int _make_words(char *l, uint32_t n, uint32_t *r, int32_t quantvals, codebook *b, oggpack_buffer *opb, int maptype) {
 	int32_t  i, j, count = 0;
 	int32_t  top = 0;
 	uint32_t marker[33];
@@ -1536,7 +1536,6 @@ int _make_words(char *l, int32_t n, uint32_t *r, int32_t quantvals, codebook *b,
 }
 //---------------------------------------------------------------------------------------------------------------------
 int _make_decode_table(codebook *s, char *lengthlist, int32_t quantvals, oggpack_buffer *opb, int maptype) {
-	uint32_t     i;
 	uint32_t *work;
 
 	if(s->dec_nodeb == 4) {
@@ -1554,48 +1553,48 @@ int _make_decode_table(codebook *s, char *lengthlist, int32_t quantvals, oggpack
 	if(s->dec_leafw == 1) {
 		switch(s->dec_nodeb) {
 			case 1:
-				for(i = 0; i < s->used_entries * 2 - 2; i++)
-					((uint8_t *)s->dec_table)[i] = ((work[i] & 0x80000000UL) >> 24) | work[i];
+				for(uint32_t i = 0; i < s->used_entries * 2 - 2; i++)
+					((uint8_t *)s->dec_table)[i] =  (uint16_t)((work[i] & 0x80000000UL) >> 24) | work[i];
 				break;
 			case 2:
-				for(i = 0; i < s->used_entries * 2 - 2; i++)
-					((uint16_t *)s->dec_table)[i] = ((work[i] & 0x80000000UL) >> 16) | work[i];
+				for(uint32_t i = 0; i < s->used_entries * 2 - 2; i++)
+					((uint16_t *)s->dec_table)[i] = (uint16_t)((work[i] & 0x80000000UL) >> 16) | work[i];
 				break;
 		}
 	}
 	else {
 		/* more complex; we have to do a two-pass repack that updates the node indexing. */
-		int32_t top = s->used_entries * 3 - 2;
+		uint32_t top = s->used_entries * 3 - 2;
 		if(s->dec_nodeb == 1) {
 			uint8_t *out = (uint8_t *)s->dec_table;
 
-			for(i = s->used_entries * 2 - 4; i >= 0; i -= 2) {
+			for(uint32_t i = s->used_entries * 2 - 4; i >= 0; i -= 2) {
 				if(work[i] & 0x80000000UL) {
 					if(work[i + 1] & 0x80000000UL) {
 						top -= 4;
-						out[top] = (work[i] >> 8 & 0x7f) | 0x80;
-						out[top + 1] = (work[i + 1] >> 8 & 0x7f) | 0x80;
-						out[top + 2] = work[i] & 0xff;
-						out[top + 3] = work[i + 1] & 0xff;
+						out[top]     = (uint8_t)(work[i] >> 8 & 0x7f) | 0x80;
+						out[top + 1] = (uint8_t)(work[i + 1] >> 8 & 0x7f) | 0x80;
+						out[top + 2] = (uint8_t) work[i] & 0xff;
+						out[top + 3] = (uint8_t) work[i + 1] & 0xff;
 					}
 					else {
 						top -= 3;
-						out[top] = (work[i] >> 8 & 0x7f) | 0x80;
-						out[top + 1] = work[work[i + 1] * 2];
-						out[top + 2] = work[i] & 0xff;
+						out[top]     = (uint8_t)(work[i] >> 8 & 0x7f) | 0x80;
+						out[top + 1] = (uint8_t) work[work[i + 1] * 2];
+						out[top + 2] = (uint8_t) work[i] & 0xff;
 					}
 				}
 				else {
 					if(work[i + 1] & 0x80000000UL) {
 						top -= 3;
-						out[top] = work[work[i] * 2];
-						out[top + 1] = (work[i + 1] >> 8 & 0x7f) | 0x80;
-						out[top + 2] = work[i + 1] & 0xff;
+						out[top]     = (uint8_t) work[work[i] * 2];
+						out[top + 1] = (uint8_t)(work[i + 1] >> 8 & 0x7f) | 0x80;
+						out[top + 2] = (uint8_t) work[i + 1] & 0xff;
 					}
 					else {
 						top -= 2;
-						out[top] = work[work[i] * 2];
-						out[top + 1] = work[work[i + 1] * 2];
+						out[top]     = (uint8_t) work[work[i] * 2];
+						out[top + 1] = (uint8_t) work[work[i + 1] * 2];
 					}
 				}
 				work[i] = top;
@@ -1603,40 +1602,39 @@ int _make_decode_table(codebook *s, char *lengthlist, int32_t quantvals, oggpack
 		}
 		else {
 			uint16_t *out = (uint16_t *)s->dec_table;
-			for(i = s->used_entries * 2 - 4; i >= 0; i -= 2) {
+			for(int i = s->used_entries * 2 - 4; i >= 0; i -= 2) {
 				if(work[i] & 0x80000000UL) {
 					if(work[i + 1] & 0x80000000UL) {
 						top -= 4;
-						out[top] = (work[i] >> 16 & 0x7fff) | 0x8000;
-						out[top + 1] = (work[i + 1] >> 16 & 0x7fff) | 0x8000;
-						out[top + 2] = work[i] & 0xffff;
-						out[top + 3] = work[i + 1] & 0xffff;
+						out[top]     = (uint16_t)(work[i] >> 16 & 0x7fff) | 0x8000;
+						out[top + 1] = (uint16_t)(work[i + 1] >> 16 & 0x7fff) | 0x8000;
+						out[top + 2] = (uint16_t) work[i] & 0xffff;
+						out[top + 3] = (uint16_t) work[i + 1] & 0xffff;
 					}
 					else {
 						top -= 3;
-						out[top] = (work[i] >> 16 & 0x7fff) | 0x8000;
-						out[top + 1] = work[work[i + 1] * 2];
-						out[top + 2] = work[i] & 0xffff;
+						out[top]     = (uint16_t)(work[i] >> 16 & 0x7fff) | 0x8000;
+						out[top + 1] = (uint16_t) work[work[i + 1] * 2];
+						out[top + 2] = (uint16_t) work[i] & 0xffff;
 					}
 				}
 				else {
 					if(work[i + 1] & 0x80000000UL) {
 						top -= 3;
-						out[top] = work[work[i] * 2];
-						out[top + 1] = (work[i + 1] >> 16 & 0x7fff) | 0x8000;
-						out[top + 2] = work[i + 1] & 0xffff;
+						out[top]     = (uint16_t) work[work[i] * 2];
+						out[top + 1] = (uint16_t)(work[i + 1] >> 16 & 0x7fff) | 0x8000;
+						out[top + 2] = (uint16_t) work[i + 1] & 0xffff;
 					}
 					else {
 						top -= 2;
-						out[top] = work[work[i] * 2];
-						out[top + 1] = work[work[i + 1] * 2];
+						out[top]     = (uint16_t) work[work[i] * 2];
+						out[top + 1] = (uint16_t) work[work[i + 1] * 2];
 					}
 				}
-				work[i] = top;
+				work[i] = (uint32_t)top;
 			}
 		}
 	}
-
 	return 0;
 }
 //---------------------------------------------------------------------------------------------------------------------
@@ -1646,16 +1644,16 @@ int _make_decode_table(codebook *s, char *lengthlist, int32_t quantvals, oggpack
  codebooks like that */
 /* there might be a straightforward one-line way to do the below that's portable and totally safe against roundoff, but
  I haven't thought of it.  Therefore, we opt on the side of caution */
-int32_t _book_maptype1_quantvals(codebook *b) {
+uint32_t _book_maptype1_quantvals(codebook *b) {
 	/* get us a starting hint, we'll polish it below */
-	int bits = _ilog(b->entries);
-	int vals = b->entries >> ((bits - 1) * (b->dim - 1) / b->dim);
+	uint8_t  bits = _ilog(b->entries);
+	uint32_t vals = b->entries >> ((bits - 1) * (b->dim - 1) / b->dim);
 
 	while(1) {
-		int32_t acc = 1;
-		int32_t acc1 = 1;
-		int     i;
-		for(i = 0; i < b->dim; i++) {
+		uint32_t acc  = 1;
+		uint32_t acc1 = 1;
+
+		for(uint8_t i = 0; i < b->dim; i++) {
 			acc *= vals;
 			acc1 *= vals + 1;
 		}
@@ -1682,10 +1680,11 @@ int oggpack_eop(oggpack_buffer *b) {
 }
 //---------------------------------------------------------------------------------------------------------------------
 int vorbis_book_unpack(oggpack_buffer *opb, codebook *s) {
-	char   *lengthlist = NULL;
-	int     quantvals = 0;
-	int32_t i, j;
-	int     maptype;
+	char     *lengthlist = NULL;
+	uint32_t  quantvals = 0;
+	int32_t   i, j;
+	int       maptype;
+	int ret = 0;
 
 	memset(s, 0, sizeof(*s));
 
@@ -1693,8 +1692,12 @@ int vorbis_book_unpack(oggpack_buffer *opb, codebook *s) {
 	if(oggpack_read(opb, 24) != 0x564342) goto _eofout;
 
 	/* first the basic parameters */
-	s->dim = oggpack_read(opb, 16);
-	s->entries = oggpack_read(opb, 24);
+	ret = oggpack_read(opb, (int)16);
+	if(ret < 0) printf("error in vorbis_book_unpack, ret =%i\n", ret);
+	if(ret > 255) printf("error in vorbis_book_unpack, ret =%i\n", ret);
+	s->dim = (uint8_t)ret;
+
+	s->entries = oggpack_read(opb, (int)24);
 	if(s->entries == -1) goto _eofout;
 
 	/* codeword ordering.... length ordered or unordered? */
@@ -1970,7 +1973,7 @@ int32_t vorbis_book_decode(codebook *book, oggpack_buffer *b) {
 //---------------------------------------------------------------------------------------------------------------------
 int decode_map(codebook *s, oggpack_buffer *b, int32_t *v, int point) {
 	uint32_t entry = decode_packed_entry_number(s, b);
-	int      i;
+
 	if(oggpack_eop(b)) return (-1);
 
 	/* according to decode type */
@@ -1978,7 +1981,7 @@ int decode_map(codebook *s, oggpack_buffer *b, int32_t *v, int point) {
 		case 1: {
 			/* packed vector of values */
 			int mask = (1 << s->q_bits) - 1;
-			for(i = 0; i < s->dim; i++) {
+			for(uint8_t i = 0; i < s->dim; i++) {
 				v[i] = entry & mask;
 				entry >>= s->q_bits;
 			}
@@ -1987,7 +1990,7 @@ int decode_map(codebook *s, oggpack_buffer *b, int32_t *v, int point) {
 		case 2: {
 			/* packed vector of column offsets */
 			int mask = (1 << s->q_pack) - 1;
-			for(i = 0; i < s->dim; i++) {
+			for(uint8_t i = 0; i < s->dim; i++) {
 				if(s->q_bits <= 8) v[i] = ((uint8_t *)(s->q_val))[entry & mask];
 				else
 					v[i] = ((uint16_t *)(s->q_val))[entry & mask];
@@ -2000,10 +2003,10 @@ int decode_map(codebook *s, oggpack_buffer *b, int32_t *v, int point) {
 			void *ptr = (int *)s->q_val + entry * s->q_pack;
 
 			if(s->q_bits <= 8) {
-				for(i = 0; i < s->dim; i++) v[i] = ((uint8_t *)ptr)[i];
+				for(uint8_t i = 0; i < s->dim; i++) v[i] = ((uint8_t *)ptr)[i];
 			}
 			else {
-				for(i = 0; i < s->dim; i++) v[i] = ((uint16_t *)ptr)[i];
+				for(uint8_t i = 0; i < s->dim; i++) v[i] = ((uint16_t *)ptr)[i];
 			}
 			break;
 		}
@@ -2020,28 +2023,29 @@ int decode_map(codebook *s, oggpack_buffer *b, int32_t *v, int point) {
 			add = s->q_min << -add;
 
 		if(shiftM > 0)
-			for(i = 0; i < s->dim; i++) v[i] = add + ((v[i] * s->q_del) >> shiftM);
+			for(uint8_t i = 0; i < s->dim; i++) v[i] = add + ((v[i] * s->q_del) >> shiftM);
 		else
-			for(i = 0; i < s->dim; i++) v[i] = add + ((v[i] * s->q_del) << -shiftM);
+			for(uint8_t i = 0; i < s->dim; i++) v[i] = add + ((v[i] * s->q_del) << -shiftM);
 
 		if(s->q_seq)
-			for(i = 1; i < s->dim; i++) v[i] += v[i - 1];
+			for(uint8_t i = 1; i < s->dim; i++) v[i] += v[i - 1];
 	}
 
 	return 0;
 }
 //---------------------------------------------------------------------------------------------------------------------
-/* returns 0 on OK or -1 on eof
+/* returns 0 on OK or -1 on eof */
 /* decode vector / dim granularity guarding is done in the upper layer */
 int32_t vorbis_book_decodevs_add(codebook *book, int32_t *a, oggpack_buffer *b, int n, int point) {
+
 	if(book->used_entries > 0) {
 		int      step = n / book->dim;
 		int32_t *v = (int32_t *)alloca(sizeof(*v) * book->dim);
-		int      i, j, o;
+		int      j, o;
 
 		for(j = 0; j < step; j++) {
 			if(decode_map(book, b, v, point)) return -1;
-			for(i = 0, o = j; i < book->dim; i++, o += step) a[o] += v[i];
+			for(uint8_t i = 0, o = j; i < book->dim; i++, o += step) a[o] += v[i];
 		}
 	}
 	return 0;
@@ -2051,11 +2055,11 @@ int32_t vorbis_book_decodevs_add(codebook *book, int32_t *a, oggpack_buffer *b, 
 int32_t vorbis_book_decodev_add(codebook *book, int32_t *a, oggpack_buffer *b, int n, int point) {
 	if(book->used_entries > 0) {
 		int32_t *v = (int32_t *)alloca(sizeof(*v) * book->dim);
-		int      i, j;
+		uint32_t      i;
 
 		for(i = 0; i < n;) {
 			if(decode_map(book, b, v, point)) return -1;
-			for(j = 0; i < n && j < book->dim; j++) a[i++] += v[j];
+			for(uint8_t j = 0; i < n && j < book->dim; j++) a[i++] += v[j];
 		}
 	}
 	return 0;
@@ -2066,11 +2070,11 @@ int32_t vorbis_book_decodev_add(codebook *book, int32_t *a, oggpack_buffer *b, i
 int32_t vorbis_book_decodev_set(codebook *book, int32_t *a, oggpack_buffer *b, int n, int point) {
 	if(book->used_entries > 0) {
 		int32_t *v = (int32_t *)alloca(sizeof(*v) * book->dim);
-		int      i, j;
+		int      i;
 
 		for(i = 0; i < n;) {
 			if(decode_map(book, b, v, point)) return -1;
-			for(j = 0; i < n && j < book->dim; j++) a[i++] = v[j];
+			for(uint8_t j = 0; i < n && j < book->dim; j++) a[i++] = v[j];
 		}
 	}
 	else {
@@ -2083,17 +2087,17 @@ int32_t vorbis_book_decodev_set(codebook *book, int32_t *a, oggpack_buffer *b, i
 }
 //---------------------------------------------------------------------------------------------------------------------
 /* decode vector / dim granularity guarding is done in the upper layer */
-int32_t vorbis_book_decodevv_add(codebook *book, int32_t **a, int32_t offset, int ch, oggpack_buffer *b, int n,
+int32_t vorbis_book_decodevv_add(codebook *book, int32_t **a, int32_t offset, uint8_t ch, oggpack_buffer *b, int n,
 								 int point) {
 	if(book->used_entries > 0) {
 		int32_t *v = (int32_t *)alloca(sizeof(*v) * book->dim);
-		int32_t  i, j;
-		int      chptr = 0;
+		int32_t  i;
+		uint8_t  chptr = 0;
 		int32_t  m = offset + n;
 
 		for(i = offset; i < m;) {
 			if(decode_map(book, b, v, point)) return -1;
-			for(j = 0; i < m && j < book->dim; j++) {
+			for(uint8_t j = 0; i < m && j < book->dim; j++) {
 				a[chptr++][i] += v[j];
 				if(chptr == ch) {
 					chptr = 0;
@@ -2627,7 +2631,7 @@ int floor0_memosize(vorbis_info_floor *i) {
 //---------------------------------------------------------------------------------------------------------------------
 int32_t *floor0_inverse1(vorbis_dsp_state *vd, vorbis_info_floor *i, int32_t *lsp) {
 	vorbis_info_floor0 *info = (vorbis_info_floor0 *)i;
-	int                 j, k;
+	int                 j;
 
 	int ampraw = oggpack_read(&vd->opb, info->ampbits);
 
@@ -2643,7 +2647,7 @@ int32_t *floor0_inverse1(vorbis_dsp_state *vd, vorbis_info_floor *i, int32_t *ls
 
 			if(vorbis_book_decodev_set(b, lsp, &vd->opb, info->order, -24) == -1) goto eop;
 			for(j = 0; j < info->order;) {
-				for(k = 0; j < info->order && k < b->dim; k++, j++) lsp[j] += last;
+				for(uint8_t k = 0; j < info->order && k < b->dim; k++, j++) lsp[j] += last;
 				last = lsp[j - 1];
 			}
 
@@ -2735,7 +2739,7 @@ vorbis_info_floor *floor1_info_unpack(vorbis_info *vi, oggpack_buffer *opb) {
 	}
 
 	/* read partition classes */
-	info->_class = (floor1class *)malloc((maxclass + 1) * sizeof(*info->_class));
+	info->_class = (floor1class *)malloc((uint32_t)(maxclass + 1) * sizeof(*info->_class));
 	for(j = 0; j < maxclass + 1; j++) {
 		info->_class[j].class_dim = oggpack_read(opb, 3) + 1; /* 1 to 8 */
 		info->_class[j].class_subs = oggpack_read(opb, 2);    /* 0,1,2,3 bits */
@@ -2745,7 +2749,7 @@ vorbis_info_floor *floor1_info_unpack(vorbis_info *vi, oggpack_buffer *opb) {
 			info->_class[j].class_book = 0;
 		if(info->_class[j].class_book >= ci->books) goto err_out;
 		for(k = 0; k < (1 << info->_class[j].class_subs); k++) {
-			info->_class[j].class_subbook[k] = oggpack_read(opb, 8) - 1;
+			info->_class[j].class_subbook[k] = (uint8_t)oggpack_read(opb, 8) - 1;
 			if(info->_class[j].class_subbook[k] >= ci->books && info->_class[j].class_subbook[k] != 0xff) goto err_out;
 		}
 	}
@@ -3342,7 +3346,7 @@ int mapping_inverse(vorbis_dsp_state *vd, vorbis_info_mapping *info) {
 
 	/* recover the residue into our working vectors */
 	for(i = 0; i < info->submaps; i++) {
-		int ch_in_bundle = 0;
+		uint8_t ch_in_bundle = 0;
 		for(j = 0; j < vi->channels; j++) {
 			if(!info->chmuxlist || info->chmuxlist[j] == i) {
 				if(nonzero[j]) zerobundle[ch_in_bundle] = 1;
@@ -3936,24 +3940,25 @@ errout:
 	return 1;
 }
 //---------------------------------------------------------------------------------------------------------------------
-int res_inverse(vorbis_dsp_state *vd, vorbis_info_residue *info, int32_t **in, int *nonzero, int ch) {
-	int               i, j, k, s, used = 0;
+int res_inverse(vorbis_dsp_state *vd, vorbis_info_residue *info, int32_t **in, int *nonzero, uint8_t ch) {
+	int               j, k, s;
+	uint8_t           used = 0;
 	codec_setup_info *ci = (codec_setup_info *)vd->vi->codec_setup;
 	codebook         *phrasebook = ci->book_param + info->groupbook;
-	int               samples_per_partition = info->grouping;
-	int               partitions_per_word = phrasebook->dim;
-	int               pcmend = ci->blocksizes[vd->W];
+	uint32_t          samples_per_partition = info->grouping;
+	uint8_t           partitions_per_word = phrasebook->dim;
+	uint32_t          pcmend = ci->blocksizes[vd->W];
 
 	if(info->type < 2) {
-		int max = pcmend >> 1;
-		int end = (info->end < max ? info->end : max);
-		int n = end - info->begin;
+		uint32_t max = pcmend >> 1;
+		uint32_t end = (info->end < max ? info->end : max);
+		uint32_t n = end - info->begin;
 
 		if(n > 0) {
-			int partvals = n / samples_per_partition;
-			int partwords = (partvals + partitions_per_word - 1) / partitions_per_word;
+			uint32_t  partvals = n / samples_per_partition;
+			uint32_t  partwords = (partvals + partitions_per_word - 1) / partitions_per_word;
 
-			for(i = 0; i < ch; i++)
+			for(uint8_t i = 0; i < ch; i++)
 				if(nonzero[i]) in[used++] = in[i];
 			ch = used;
 
@@ -3963,7 +3968,7 @@ int res_inverse(vorbis_dsp_state *vd, vorbis_info_residue *info, int32_t **in, i
 					partword[j] = (char *)alloca(partwords * partitions_per_word * sizeof(*partword[j]));
 
 				for(s = 0; s < info->stages; s++) {
-					for(i = 0; i < partvals;) {
+					for(uint32_t i = 0; i < partvals;) {
 						if(s == 0) {
 							/* fetch the partition word for each channel */
 
@@ -3990,7 +3995,7 @@ int res_inverse(vorbis_dsp_state *vd, vorbis_info_residue *info, int32_t **in, i
 						}
 
 						/* now we decode residual values for the partitions */
-						for(k = 0; k < partitions_per_word && i < partvals; k++, i++)
+						for(k = 0; k < partitions_per_word && i < partvals; k++, i++){
 							for(j = 0; j < ch; j++) {
 								int32_t offset = info->begin + i * samples_per_partition;
 								if(info->stagemasks[(int)partword[j][i]] & (1 << s)) {
@@ -4007,23 +4012,25 @@ int res_inverse(vorbis_dsp_state *vd, vorbis_info_residue *info, int32_t **in, i
 									}
 								}
 							}
+						}
 					}
 				}
 			}
 		}
 	}
 	else {
-		int max = (pcmend * ch) >> 1;
-		int end = (info->end < max ? info->end : max);
-		int n = end - info->begin;
+		uint32_t max = (pcmend * ch) >> 1;
+		uint32_t end = (info->end < max ? info->end : max);
+		uint32_t n = end - info->begin;
 
 		if(n > 0) {
-			int partvals = n / samples_per_partition;
-			int partwords = (partvals + partitions_per_word - 1) / partitions_per_word;
+			uint32_t  partvals = n / samples_per_partition;
+			uint32_t  partwords = (partvals + partitions_per_word - 1) / partitions_per_word;
 
 			char *partword = (char *)alloca(partwords * partitions_per_word * sizeof(*partword));
 			int   beginoff = info->begin / ch;
 
+			uint8_t i = 0;
 			for(i = 0; i < ch; i++)
 				if(nonzero[i]) break;
 			if(i == ch) return (0); /* no nonzero vectors */
@@ -4031,7 +4038,7 @@ int res_inverse(vorbis_dsp_state *vd, vorbis_info_residue *info, int32_t **in, i
 			samples_per_partition /= ch;
 
 			for(s = 0; s < info->stages; s++) {
-				for(i = 0; i < partvals;) {
+				for(uint32_t i = 0; i < partvals;) {
 					if(s == 0) {
 						int temp;
 						partword[i + partitions_per_word - 1] = 1;
@@ -4044,8 +4051,8 @@ int res_inverse(vorbis_dsp_state *vd, vorbis_info_residue *info, int32_t **in, i
 
 						/* this can be done quickly in assembly due to the quotient always being at most six bits */
 						for(k = 0; k < partitions_per_word; k++) {
-							uint32_t div = partword[i + k];
-							partword[i + k] = temp / div;
+							char div = partword[i + k];
+							partword[i + k] = (char)temp / div;
 							temp -= partword[i + k] * div;
 						}
 					}

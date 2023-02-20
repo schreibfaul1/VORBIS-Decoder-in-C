@@ -1,5 +1,5 @@
 #pragma once
-
+#pragma GCC diagnostic ignored "-Wconversion"
 #include <stdint.h>
 #include <stdio.h>
 #include "vorbisfile.h"
@@ -61,7 +61,7 @@
 	}
 //---------------------------------------------------------------------------------------------------------------------
 typedef struct codebook{
-	uint32_t dim;          /* codebook dimensions (elements per vector) */
+	uint8_t  dim;          /* codebook dimensions (elements per vector) */
 	uint32_t entries;      /* codebook entries */
 	uint32_t used_entries; /* populated codebook entries */
 	uint32_t dec_maxlength;
@@ -106,12 +106,12 @@ typedef struct vorbis_info_mapping
 } vorbis_info_mapping;
 
 typedef struct codec_setup_info{         // Vorbis supports only short and int32_t blocks, but allows the
-	int32_t              blocksizes[2];  // encoder to choose the sizes
-	int                  modes;          // modes are the primary means of supporting on-the-fly different
-	int                  maps;           // blocksizes, different channel mappings (LR or M/A),
-	int                  floors;         // different residue backends, etc.  Each mode consists of a
-	int                  residues;       // blocksize flag and a mapping (aint32_t with the mapping setup
-	int                  books;
+	uint32_t             blocksizes[2];  // encoder to choose the sizes
+	uint32_t             modes;          // modes are the primary means of supporting on-the-fly different
+	uint32_t             maps;           // blocksizes, different channel mappings (LR or M/A),
+	uint32_t             floors;         // different residue backends, etc.  Each mode consists of a
+	uint32_t             residues;       // blocksize flag and a mapping (aint32_t with the mapping setup
+	uint32_t             books;
 	vorbis_info_mode    *mode_param;
 	vorbis_info_mapping *map_param;
 	char                *floor_type;
@@ -163,15 +163,14 @@ inline int32_t CLIP_TO_15(int32_t x) {
 
 //---------------------------------------------------------------------------------------------------------------------
 void     _span(oggpack_buffer_t *b);
-int      _ilog(uint32_t v);
-int      _ilog(uint32_t v);
+uint8_t  _ilog(uint32_t v);
 uint32_t decpack(int32_t entry, int32_t used_entry, int32_t quantvals, codebook *b, oggpack_buffer_t *opb, int maptype);
 int32_t  _float32_unpack(int32_t val, int *point);
 int      _determine_node_bytes(uint32_t used, int leafwidth);
 int      _determine_leaf_words(int nodeb, int leafwidth);
-int      _make_words(uint8_t *l, uint32_t n, uint32_t *r, int32_t quantvals, codebook *b, oggpack_buffer_t *opb, int maptype);
+int      _make_words(char *l, uint32_t n, uint32_t *r, int32_t quantvals, codebook *b, oggpack_buffer_t *opb, int maptype);
 int      _make_decode_table(codebook *s, char *lengthlist, int32_t quantvals, oggpack_buffer_t *opb, int maptype);
-int32_t  _book_maptype1_quantvals(codebook *b);
+uint32_t _book_maptype1_quantvals(codebook *b);
 void     vorbis_book_clear(codebook *b);
 int      vorbis_book_unpack(oggpack_buffer_t *opb, codebook *s);
 uint32_t decode_packed_entry_number(codebook *book, oggpack_buffer_t *b);
@@ -180,7 +179,7 @@ int      decode_map(codebook *s, oggpack_buffer_t *b, int32_t *v, int point);
 int32_t  vorbis_book_decodevs_add(codebook *book, int32_t *a, oggpack_buffer_t *b, int n, int point);
 int32_t  vorbis_book_decodev_add(codebook *book, int32_t *a, oggpack_buffer_t *b, int n, int point);
 int32_t  vorbis_book_decodev_set(codebook *book, int32_t *a, oggpack_buffer_t *b, int n, int point);
-int32_t  vorbis_book_decodevv_add(codebook *book, int32_t **a, int32_t offset, int ch, oggpack_buffer_t *b, int n,
+int32_t  vorbis_book_decodevv_add(codebook *book, int32_t **a, int32_t offset, uint8_t ch, oggpack_buffer_t *b, int n,
 								  int point);
 int      vorbis_dsp_restart(vorbis_dsp_state *v);
 vorbis_dsp_state *vorbis_dsp_create(vorbis_info *vi);
@@ -243,4 +242,4 @@ void mdct_unroll_lap(int n0, int n1, int lW, int W, int *in, int *right, const i
 					 int end /* samples, this frame */);
 void res_clear_info(vorbis_info_residue *info);
 int  res_unpack(vorbis_info_residue *info, vorbis_info *vi, oggpack_buffer_t *opb);
-int  res_inverse(vorbis_dsp_state *vd, vorbis_info_residue *info, int32_t **in, int *nonzero, int ch);
+int  res_inverse(vorbis_dsp_state *vd, vorbis_info_residue *info, int32_t **in, int *nonzero, uint8_t ch);

@@ -179,7 +179,7 @@ struct vorbis_dsp_state
 	int              out_begin;
 	int              out_end;
 	int32_t          lW;
-	int32_t          W;
+	uint32_t         W;
 	int64_t          granulepos;
 	int64_t          sequence;
 	int64_t          sample_count;
@@ -217,19 +217,18 @@ typedef struct
 	int          mult; /* 1 2 3 or 4 */
 } vorbis_info_floor1;
 
-typedef struct vorbis_info_residue
-{
+typedef struct vorbis_info_residue{
 	int      type;
 	uint8_t *stagemasks;
 	uint8_t *stagebooks;
 	/* block-partitioned VQ coded straight residue */
-	int32_t begin;
-	int32_t end;
+	uint32_t begin;
+	uint32_t end;
 	/* first stage (lossless partitioning) */
-	int     grouping;   /* group n vectors per partition */
-	char    partitions; /* possible codebooks for a partition */
-	uint8_t groupbook;  /* huffbook for partitioning */
-	char    stages;
+	uint32_t grouping;   /* group n vectors per partition */
+	char     partitions; /* possible codebooks for a partition */
+	uint8_t  groupbook;  /* huffbook for partitioning */
+	char     stages;
 } vorbis_info_residue;
 
 typedef struct
