@@ -17,13 +17,20 @@
 #ifndef _OGG_H
 #define _OGG_H
 
-
-#include "os_types.h"
 #include <stdint.h>
 #include <stdio.h>
 
 #define FINFLAG 0x80000000UL
 #define FINMASK 0x7fffffffUL
+
+#define  OGG_SUCCESS   0
+
+#define  OGG_HOLE     -10
+#define  OGG_SPAN     -11
+#define  OGG_EVERSION -12
+#define  OGG_ESERIAL  -13
+#define  OGG_EINVAL   -14
+#define  OGG_EEOS     -15
 
 
 typedef struct ogg_buffer_state{
@@ -349,72 +356,6 @@ int ogg_stream_destroy(ogg_stream_state_t *os);
 int ogg_stream_reset(ogg_stream_state_t *os);
 void ogg_page_dup(ogg_page *dup, ogg_page *orig);
 ogg_reference_t* ogg_buffer_dup(ogg_reference_t *_or);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//
-///* Ogg BITSTREAM PRIMITIVES: decoding **************************/
-//
-
-extern int      ogg_sync_reset(ogg_sync_state_t *oy);
-//
-extern unsigned char *ogg_sync_bufferin(ogg_sync_state_t *oy, long size);
-extern int      ogg_sync_wrote(ogg_sync_state_t *oy, long bytes);
-extern ogg_sync_state_t* ogg_sync_create(void);
-extern int ogg_sync_destroy(ogg_sync_state_t *oy);
-extern long     ogg_sync_pageseek(ogg_sync_state_t *oy,ogg_page *og);
-extern int      ogg_stream_pagein(ogg_stream_state_t *os, ogg_page *og);
-extern int      ogg_stream_packetout(ogg_stream_state_t *os,ogg_packet *op);
-extern int      ogg_stream_packetpeek(ogg_stream_state_t *os,ogg_packet *op);
-//
-///* Ogg BITSTREAM PRIMITIVES: general ***************************/
-//
-extern ogg_stream_state_t *ogg_stream_create(int serialno);
-extern int      ogg_stream_destroy(ogg_stream_state_t *os);
-extern int      ogg_stream_reset(ogg_stream_state_t *os);
-extern int      ogg_stream_reset_serialno(ogg_stream_state_t *os,int serialno);
-extern int      ogg_stream_eos(ogg_stream_state_t *os);
-//
-extern int      ogg_page_checksum_set(ogg_page *og);
-//
-extern int      ogg_page_version(ogg_page *og);
-extern int      ogg_page_continued(ogg_page *og);
-extern int      ogg_page_bos(ogg_page *og);
-extern int      ogg_page_eos(ogg_page *og);
-extern int64_t  ogg_page_granulepos(ogg_page *og);
-extern uint32_t ogg_page_serialno(ogg_page *og);
-extern uint32_t ogg_page_pageno(ogg_page *og);
-extern int      ogg_page_getbuffer(ogg_page *og, unsigned char **buffer);
-//
-extern int      ogg_packet_release(ogg_packet *op);
-extern int      ogg_page_release(ogg_page *og);
-//
-extern void     ogg_page_dup(ogg_page *d, ogg_page *s);
-//
-///* Ogg BITSTREAM PRIMITIVES: return codes ***************************/
-
-#define  OGG_SUCCESS   0
-
-#define  OGG_HOLE     -10
-#define  OGG_SPAN     -11
-#define  OGG_EVERSION -12
-#define  OGG_ESERIAL  -13
-#define  OGG_EINVAL   -14
-#define  OGG_EEOS     -15
-
-
 
 
 #endif  /* _OGG_H */
