@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "vorbisfile.h"
 
 const int32_t FLOOR_fromdB_LOOKUP[256] = {
@@ -1315,7 +1316,7 @@ int _ilog(uint32_t v) {
 /* Read in bits without advancing the bitptr; bits <= 32 */
 int32_t oggpack_look(oggpack_buffer *b, int bits) {
 	uint32_t m = mask[bits];
-	int32_t  ret;
+	int32_t  ret = 0;
 
 	bits += b->headbit;
 
@@ -1366,7 +1367,7 @@ int32_t oggpack_look(oggpack_buffer *b, int bits) {
 		}
 	}
 
-	ret &= m;
+	ret &= (int32_t)m;
 	return ret;
 }
 //---------------------------------------------------------------------------------------------------------------------
@@ -1388,7 +1389,7 @@ int32_t oggpack_read(oggpack_buffer *b, int bits) {
 //---------------------------------------------------------------------------------------------------------------------
 uint32_t decpack(int32_t entry, int32_t used_entry, int32_t quantvals, codebook *b, oggpack_buffer *opb, int maptype) {
 	uint32_t ret = 0;
-	int      j;
+	uint32_t j;
 
 	switch(b->dec_type) {
 		case 0:
@@ -1397,22 +1398,35 @@ uint32_t decpack(int32_t entry, int32_t used_entry, int32_t quantvals, codebook 
 		case 1:
 			if(maptype == 1) {
 				/* vals are already read into temporary column vector here */
-				for(j = 0; j < b->dim; j++) {
-					uint32_t off = entry % quantvals;
+				assert(b->dim >= 0);
+				for(j = 0; j < (uint32_t)b->dim; j++) {
+					uint32_t off = (uint32_t)(entry % quantvals);
 					entry /= quantvals;
-					ret |= ((uint16_t *)(b->q_val))[off] << (b->q_bits * j);
+					assert((b->q_bits * j) >= 0);
+					uint32_t shift = (uint32_t)b->q_bits * j;
+					ret |= ((uint16_t *)(b->q_val))[off] << shift;
 				}
 			}
 			else {
-				for(j = 0; j < b->dim; j++) ret |= oggpack_read(opb, b->q_bits) << (b->q_bits * j);
+				assert(b->dim >= 0);
+				for(j = 0; j < (uint32_t)b->dim; j++){
+					assert((b->q_bits * j) >= 0);
+					uint32_t shift = (uint32_t)b->q_bits * j;
+					int32_t _ret = oggpack_read(opb, b->q_bits) << shift;
+					assert(_ret >= 0);
+					ret |= (uint32_t)_ret;
+				}
 			}
 			return ret;
 
 		case 2:
-			for(j = 0; j < b->dim; j++) {
-				uint32_t off = entry % quantvals;
+		    assert(b->dim >= 0);
+			for(j = 0; j < (uint32_t)b->dim; j++) {
+				uint32_t off = uint32_t(entry % quantvals);
 				entry /= quantvals;
-				ret |= off << (b->q_pack * j);
+				assert(b->q_pack * j >= 0);
+				assert(b->q_pack * j <= 255);
+				ret |= off << (uint8_t)(b->q_pack * j);
 			}
 			return ret;
 
@@ -1427,7 +1441,7 @@ uint32_t decpack(int32_t entry, int32_t used_entry, int32_t quantvals, codebook 
 
 int32_t _float32_unpack(int32_t val, int *point) {
 	int32_t mant = val & 0x1fffff;
-	int     sign = val & 0x80000000;
+	bool sign = val < 0;
 
 	*point = ((val & 0x7fe00000L) >> 21) - 788;
 
@@ -1443,7 +1457,7 @@ int32_t _float32_unpack(int32_t val, int *point) {
 }
 //---------------------------------------------------------------------------------------------------------------------
 /* choose the smallest supported node size that fits our decode table. Legal bytewidths are 1/1 1/2 2/2 2/4 4/4 */
-int _determine_node_bytes(int32_t used, int leafwidth) {
+int _determine_node_bytes(uint32_t used, int leafwidth) {
 	/* special case small books to size 4 to avoid multiple special cases in repack */
 	if(used < 2) return 4;
 
@@ -1522,7 +1536,7 @@ int _make_words(char *l, int32_t n, uint32_t *r, int32_t quantvals, codebook *b,
 }
 //---------------------------------------------------------------------------------------------------------------------
 int _make_decode_table(codebook *s, char *lengthlist, int32_t quantvals, oggpack_buffer *opb, int maptype) {
-	int       i;
+	uint32_t     i;
 	uint32_t *work;
 
 	if(s->dec_nodeb == 4) {
@@ -1533,7 +1547,7 @@ int _make_decode_table(codebook *s, char *lengthlist, int32_t quantvals, oggpack
 		return 0;
 	}
 
-	work = (uint32_t *)alloca((s->used_entries * 2 - 2) * sizeof(*work));
+	work = (uint32_t *)alloca((uint32_t)(s->used_entries * 2 - 2) * sizeof(*work));
 	if(_make_words(lengthlist, s->entries, work, quantvals, s, opb, maptype)) return 1;
 	s->dec_table = malloc((s->used_entries * (s->dec_leafw + 1) - 2) * s->dec_nodeb);
 

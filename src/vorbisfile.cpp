@@ -439,7 +439,8 @@ int _make_decode_ready(OggVorbis_File *vf) {
 			vf->vd = vorbis_dsp_create(&vf->vi);
 			vf->ready_state = INITSET;
 			vf->bittrack = 0;
-			vf->samptrack = 0;  // @suppress("No break at end of case")
+			vf->samptrack = 0;
+			__attribute__ ((fallthrough));
 		case INITSET:
 			return 0;
 		default:

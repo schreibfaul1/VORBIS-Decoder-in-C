@@ -61,24 +61,24 @@
 	}
 //---------------------------------------------------------------------------------------------------------------------
 typedef struct codebook{
-	int32_t dim;          /* codebook dimensions (elements per vector) */
-	int32_t entries;      /* codebook entries */
-	int32_t used_entries; /* populated codebook entries */
-	int     dec_maxlength;
-	void   *dec_table;
-	int     dec_nodeb;
-	int     dec_leafw;
-	int     dec_type; /* 0 = entry number
-						 1 = packed vector of values
-						 2 = packed vector of column offsets, maptype 1
-						 3 = scalar offset into value array,  maptype 2  */
+	uint32_t dim;          /* codebook dimensions (elements per vector) */
+	uint32_t entries;      /* codebook entries */
+	uint32_t used_entries; /* populated codebook entries */
+	uint32_t dec_maxlength;
+	void    *dec_table;
+	uint32_t dec_nodeb;
+	uint32_t dec_leafw;
+	uint32_t dec_type; /* 0 = entry number
+						  1 = packed vector of values
+						  2 = packed vector of column offsets, maptype 1
+						  3 = scalar offset into value array,  maptype 2  */
 	int32_t q_min;
 	int     q_minp;
 	int32_t q_del;
 	int     q_delp;
 	int     q_seq;
 	int     q_bits;
-	int     q_pack;
+	uint8_t q_pack;
 	void   *q_val;
 } codebook;
 
@@ -167,10 +167,10 @@ int      _ilog(uint32_t v);
 int      _ilog(uint32_t v);
 uint32_t decpack(int32_t entry, int32_t used_entry, int32_t quantvals, codebook *b, oggpack_buffer_t *opb, int maptype);
 int32_t  _float32_unpack(int32_t val, int *point);
-int      _determine_node_bytes(int32_t used, int leafwidth);
+int      _determine_node_bytes(uint32_t used, int leafwidth);
 int      _determine_leaf_words(int nodeb, int leafwidth);
-int _make_words(char *l, int32_t n, uint32_t *r, int32_t quantvals, codebook *b, oggpack_buffer_t *opb, int maptype);
-int _make_decode_table(codebook *s, char *lengthlist, int32_t quantvals, oggpack_buffer_t *opb, int maptype);
+int      _make_words(uint8_t *l, uint32_t n, uint32_t *r, int32_t quantvals, codebook *b, oggpack_buffer_t *opb, int maptype);
+int      _make_decode_table(codebook *s, char *lengthlist, int32_t quantvals, oggpack_buffer_t *opb, int maptype);
 int32_t  _book_maptype1_quantvals(codebook *b);
 void     vorbis_book_clear(codebook *b);
 int      vorbis_book_unpack(oggpack_buffer_t *opb, codebook *s);
