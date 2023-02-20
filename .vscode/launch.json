@@ -9,7 +9,7 @@
       "stopAtEntry": false,
       "externalConsole": false,
       "cwd": "/media/wolle/DRIVE-N-GO/platformio-workspace/VORBIS-Decoder-in-C/src",
-      "program": "/media/wolle/DRIVE-N-GO/platformio-workspace/VORBIS-Decoder-in-C/src/build/Release/outRelease",
+      "program": "/media/wolle/DRIVE-N-GO/platformio-workspace/VORBIS-Decoder-in-C/src/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
