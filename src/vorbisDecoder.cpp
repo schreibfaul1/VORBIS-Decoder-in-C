@@ -8,49 +8,35 @@
 #include "vorbisfile.h"
 
 const int32_t FLOOR_fromdB_LOOKUP[256] = {
-	XdB(0x000000e5), XdB(0x000000f4), XdB(0x00000103), XdB(0x00000114), XdB(0x00000126), XdB(0x00000139),
-	XdB(0x0000014e), XdB(0x00000163), XdB(0x0000017a), XdB(0x00000193), XdB(0x000001ad), XdB(0x000001c9),
-	XdB(0x000001e7), XdB(0x00000206), XdB(0x00000228), XdB(0x0000024c), XdB(0x00000272), XdB(0x0000029b),
-	XdB(0x000002c6), XdB(0x000002f4), XdB(0x00000326), XdB(0x0000035a), XdB(0x00000392), XdB(0x000003cd),
-	XdB(0x0000040c), XdB(0x00000450), XdB(0x00000497), XdB(0x000004e4), XdB(0x00000535), XdB(0x0000058c),
-	XdB(0x000005e8), XdB(0x0000064a), XdB(0x000006b3), XdB(0x00000722), XdB(0x00000799), XdB(0x00000818),
-	XdB(0x0000089e), XdB(0x0000092e), XdB(0x000009c6), XdB(0x00000a69), XdB(0x00000b16), XdB(0x00000bcf),
-	XdB(0x00000c93), XdB(0x00000d64), XdB(0x00000e43), XdB(0x00000f30), XdB(0x0000102d), XdB(0x0000113a),
-	XdB(0x00001258), XdB(0x0000138a), XdB(0x000014cf), XdB(0x00001629), XdB(0x0000179a), XdB(0x00001922),
-	XdB(0x00001ac4), XdB(0x00001c82), XdB(0x00001e5c), XdB(0x00002055), XdB(0x0000226f), XdB(0x000024ac),
-	XdB(0x0000270e), XdB(0x00002997), XdB(0x00002c4b), XdB(0x00002f2c), XdB(0x0000323d), XdB(0x00003581),
-	XdB(0x000038fb), XdB(0x00003caf), XdB(0x000040a0), XdB(0x000044d3), XdB(0x0000494c), XdB(0x00004e10),
-	XdB(0x00005323), XdB(0x0000588a), XdB(0x00005e4b), XdB(0x0000646b), XdB(0x00006af2), XdB(0x000071e5),
-	XdB(0x0000794c), XdB(0x0000812e), XdB(0x00008993), XdB(0x00009283), XdB(0x00009c09), XdB(0x0000a62d),
-	XdB(0x0000b0f9), XdB(0x0000bc79), XdB(0x0000c8b9), XdB(0x0000d5c4), XdB(0x0000e3a9), XdB(0x0000f274),
-	XdB(0x00010235), XdB(0x000112fd), XdB(0x000124dc), XdB(0x000137e4), XdB(0x00014c29), XdB(0x000161bf),
-	XdB(0x000178bc), XdB(0x00019137), XdB(0x0001ab4a), XdB(0x0001c70e), XdB(0x0001e4a1), XdB(0x0002041f),
-	XdB(0x000225aa), XdB(0x00024962), XdB(0x00026f6d), XdB(0x000297f0), XdB(0x0002c316), XdB(0x0002f109),
-	XdB(0x000321f9), XdB(0x00035616), XdB(0x00038d97), XdB(0x0003c8b4), XdB(0x000407a7), XdB(0x00044ab2),
-	XdB(0x00049218), XdB(0x0004de23), XdB(0x00052f1e), XdB(0x0005855c), XdB(0x0005e135), XdB(0x00064306),
-	XdB(0x0006ab33), XdB(0x00071a24), XdB(0x0007904b), XdB(0x00080e20), XdB(0x00089422), XdB(0x000922da),
-	XdB(0x0009bad8), XdB(0x000a5cb6), XdB(0x000b091a), XdB(0x000bc0b1), XdB(0x000c8436), XdB(0x000d5471),
-	XdB(0x000e3233), XdB(0x000f1e5f), XdB(0x001019e4), XdB(0x001125c1), XdB(0x00124306), XdB(0x001372d5),
-	XdB(0x0014b663), XdB(0x00160ef7), XdB(0x00177df0), XdB(0x001904c1), XdB(0x001aa4f9), XdB(0x001c603d),
-	XdB(0x001e384f), XdB(0x00202f0f), XdB(0x0022467a), XdB(0x002480b1), XdB(0x0026dff7), XdB(0x002966b3),
-	XdB(0x002c1776), XdB(0x002ef4fc), XdB(0x0032022d), XdB(0x00354222), XdB(0x0038b828), XdB(0x003c67c2),
-	XdB(0x004054ae), XdB(0x004482e8), XdB(0x0048f6af), XdB(0x004db488), XdB(0x0052c142), XdB(0x005821ff),
-	XdB(0x005ddc33), XdB(0x0063f5b0), XdB(0x006a74a7), XdB(0x00715faf), XdB(0x0078bdce), XdB(0x0080967f),
-	XdB(0x0088f1ba), XdB(0x0091d7f9), XdB(0x009b5247), XdB(0x00a56a41), XdB(0x00b02a27), XdB(0x00bb9ce2),
-	XdB(0x00c7ce12), XdB(0x00d4ca17), XdB(0x00e29e20), XdB(0x00f15835), XdB(0x0101074b), XdB(0x0111bb4e),
-	XdB(0x01238531), XdB(0x01367704), XdB(0x014aa402), XdB(0x016020a7), XdB(0x017702c3), XdB(0x018f6190),
-	XdB(0x01a955cb), XdB(0x01c4f9cf), XdB(0x01e269a8), XdB(0x0201c33b), XdB(0x0223265a), XdB(0x0246b4ea),
-	XdB(0x026c9302), XdB(0x0294e716), XdB(0x02bfda13), XdB(0x02ed9793), XdB(0x031e4e09), XdB(0x03522ee4),
-	XdB(0x03896ed0), XdB(0x03c445e2), XdB(0x0402efd6), XdB(0x0445ac4b), XdB(0x048cbefc), XdB(0x04d87013),
-	XdB(0x05290c67), XdB(0x057ee5ca), XdB(0x05da5364), XdB(0x063bb204), XdB(0x06a36485), XdB(0x0711d42b),
-	XdB(0x0787710e), XdB(0x0804b299), XdB(0x088a17ef), XdB(0x0918287e), XdB(0x09af747c), XdB(0x0a50957e),
-	XdB(0x0afc2f19), XdB(0x0bb2ef7f), XdB(0x0c759034), XdB(0x0d44d6ca), XdB(0x0e2195bc), XdB(0x0f0cad0d),
-	XdB(0x10070b62), XdB(0x1111aeea), XdB(0x122da66c), XdB(0x135c120f), XdB(0x149e24d9), XdB(0x15f525b1),
-	XdB(0x176270e3), XdB(0x18e7794b), XdB(0x1a85c9ae), XdB(0x1c3f06d1), XdB(0x1e14f07d), XdB(0x200963d7),
-	XdB(0x221e5ccd), XdB(0x2455f870), XdB(0x26b2770b), XdB(0x29363e2b), XdB(0x2be3db5c), XdB(0x2ebe06b6),
-	XdB(0x31c7a55b), XdB(0x3503ccd4), XdB(0x3875c5aa), XdB(0x3c210f44), XdB(0x4009632b), XdB(0x4432b8cf),
-	XdB(0x48a149bc), XdB(0x4d59959e), XdB(0x52606733), XdB(0x57bad899), XdB(0x5d6e593a), XdB(0x6380b298),
-	XdB(0x69f80e9a), XdB(0x70dafda8), XdB(0x78307d76), XdB(0x7fffffff),
+	0x000000e5, 0x000000f4, 0x00000103, 0x00000114, 0x00000126, 0x00000139, 0x0000014e, 0x00000163, 0x0000017a,
+	0x00000193, 0x000001ad, 0x000001c9, 0x000001e7, 0x00000206, 0x00000228, 0x0000024c, 0x00000272, 0x0000029b,
+	0x000002c6, 0x000002f4, 0x00000326, 0x0000035a, 0x00000392, 0x000003cd, 0x0000040c, 0x00000450, 0x00000497,
+	0x000004e4, 0x00000535, 0x0000058c, 0x000005e8, 0x0000064a, 0x000006b3, 0x00000722, 0x00000799, 0x00000818,
+	0x0000089e, 0x0000092e, 0x000009c6, 0x00000a69, 0x00000b16, 0x00000bcf, 0x00000c93, 0x00000d64, 0x00000e43,
+	0x00000f30, 0x0000102d, 0x0000113a, 0x00001258, 0x0000138a, 0x000014cf, 0x00001629, 0x0000179a, 0x00001922,
+	0x00001ac4, 0x00001c82, 0x00001e5c, 0x00002055, 0x0000226f, 0x000024ac, 0x0000270e, 0x00002997, 0x00002c4b,
+	0x00002f2c, 0x0000323d, 0x00003581, 0x000038fb, 0x00003caf, 0x000040a0, 0x000044d3, 0x0000494c, 0x00004e10,
+	0x00005323, 0x0000588a, 0x00005e4b, 0x0000646b, 0x00006af2, 0x000071e5, 0x0000794c, 0x0000812e, 0x00008993,
+	0x00009283, 0x00009c09, 0x0000a62d, 0x0000b0f9, 0x0000bc79, 0x0000c8b9, 0x0000d5c4, 0x0000e3a9, 0x0000f274,
+	0x00010235, 0x000112fd, 0x000124dc, 0x000137e4, 0x00014c29, 0x000161bf, 0x000178bc, 0x00019137, 0x0001ab4a,
+	0x0001c70e, 0x0001e4a1, 0x0002041f, 0x000225aa, 0x00024962, 0x00026f6d, 0x000297f0, 0x0002c316, 0x0002f109,
+	0x000321f9, 0x00035616, 0x00038d97, 0x0003c8b4, 0x000407a7, 0x00044ab2, 0x00049218, 0x0004de23, 0x00052f1e,
+	0x0005855c, 0x0005e135, 0x00064306, 0x0006ab33, 0x00071a24, 0x0007904b, 0x00080e20, 0x00089422, 0x000922da,
+	0x0009bad8, 0x000a5cb6, 0x000b091a, 0x000bc0b1, 0x000c8436, 0x000d5471, 0x000e3233, 0x000f1e5f, 0x001019e4,
+	0x001125c1, 0x00124306, 0x001372d5, 0x0014b663, 0x00160ef7, 0x00177df0, 0x001904c1, 0x001aa4f9, 0x001c603d,
+	0x001e384f, 0x00202f0f, 0x0022467a, 0x002480b1, 0x0026dff7, 0x002966b3, 0x002c1776, 0x002ef4fc, 0x0032022d,
+	0x00354222, 0x0038b828, 0x003c67c2, 0x004054ae, 0x004482e8, 0x0048f6af, 0x004db488, 0x0052c142, 0x005821ff,
+	0x005ddc33, 0x0063f5b0, 0x006a74a7, 0x00715faf, 0x0078bdce, 0x0080967f, 0x0088f1ba, 0x0091d7f9, 0x009b5247,
+	0x00a56a41, 0x00b02a27, 0x00bb9ce2, 0x00c7ce12, 0x00d4ca17, 0x00e29e20, 0x00f15835, 0x0101074b, 0x0111bb4e,
+	0x01238531, 0x01367704, 0x014aa402, 0x016020a7, 0x017702c3, 0x018f6190, 0x01a955cb, 0x01c4f9cf, 0x01e269a8,
+	0x0201c33b, 0x0223265a, 0x0246b4ea, 0x026c9302, 0x0294e716, 0x02bfda13, 0x02ed9793, 0x031e4e09, 0x03522ee4,
+	0x03896ed0, 0x03c445e2, 0x0402efd6, 0x0445ac4b, 0x048cbefc, 0x04d87013, 0x05290c67, 0x057ee5ca, 0x05da5364,
+	0x063bb204, 0x06a36485, 0x0711d42b, 0x0787710e, 0x0804b299, 0x088a17ef, 0x0918287e, 0x09af747c, 0x0a50957e,
+	0x0afc2f19, 0x0bb2ef7f, 0x0c759034, 0x0d44d6ca, 0x0e2195bc, 0x0f0cad0d, 0x10070b62, 0x1111aeea, 0x122da66c,
+	0x135c120f, 0x149e24d9, 0x15f525b1, 0x176270e3, 0x18e7794b, 0x1a85c9ae, 0x1c3f06d1, 0x1e14f07d, 0x200963d7,
+	0x221e5ccd, 0x2455f870, 0x26b2770b, 0x29363e2b, 0x2be3db5c, 0x2ebe06b6, 0x31c7a55b, 0x3503ccd4, 0x3875c5aa,
+	0x3c210f44, 0x4009632b, 0x4432b8cf, 0x48a149bc, 0x4d59959e, 0x52606733, 0x57bad899, 0x5d6e593a, 0x6380b298,
+	0x69f80e9a, 0x70dafda8, 0x78307d76, 0x7fffffff,
 };
 
 const int32_t vwin64[32] = {
@@ -1275,15 +1261,12 @@ const uint8_t MLOOP_2[64] = {
 
 const uint8_t MLOOP_3[8] = {0, 1, 2, 2, 3, 3, 3, 3};
 
-/* interpolated 1./sqrt(p) where .5 <= a < 1. (.100000... to .111111...) in
- 16.16 format returns in m.8 format */
+/* interpolated 1./sqrt(p) where .5 <= a < 1. (.100000... to .111111...) in 16.16 format returns in m.8 format */
 int32_t ADJUST_SQRT2[2] = {8192, 5792};
 
-//-------------------------------------------------------------------------------------------------
-/* spans forward, skipping as many bytes as headend is negative; if
- headend is zero, simply finds next byte.  If we're up to the end
- of the buffer, leaves headend at zero.  If we've read past the end,
- halt the decode process. */
+//---------------------------------------------------------------------------------------------------------------------
+/* spans forward, skipping as many bytes as headend is negative; if headend is zero, simply finds next byte.  If we're
+ up to the end of the buffer, leaves headend at zero.  If we've read past the end, halt the decode process. */
 
 void _span(oggpack_buffer *b) {
 	while(b->headend - (b->headbit >> 3) < 1) {
@@ -1299,8 +1282,7 @@ void _span(oggpack_buffer *b) {
 			b->headend += b->head->length;
 		}
 		else {
-			/* we've either met the end of decode, or gone past it. halt
-			 only if we're past */
+			/* we've either met the end of decode, or gone past it. halt only if we're past */
 			if(b->headend * 8 < b->headbit) /* read has fallen off the end */
 				b->headend = -1;
 			break;
@@ -1308,7 +1290,7 @@ void _span(oggpack_buffer *b) {
 	}
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int ilog(uint32_t v) {
 	int ret = 0;
 	if(v) --v;
@@ -1318,7 +1300,7 @@ int ilog(uint32_t v) {
 	}
 	return (ret);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 
 int _ilog(uint32_t v) {
 	int ret = 0;
@@ -1328,7 +1310,7 @@ int _ilog(uint32_t v) {
 	}
 	return (ret);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 
 /* Read in bits without advancing the bitptr; bits <= 32 */
 int32_t oggpack_look(oggpack_buffer *b, int bits) {
@@ -1387,7 +1369,7 @@ int32_t oggpack_look(oggpack_buffer *b, int bits) {
 	ret &= m;
 	return ret;
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 /* limited to 32 at a time */
 void oggpack_adv(oggpack_buffer *b, int bits) {
 	bits += b->headbit;
@@ -1396,14 +1378,14 @@ void oggpack_adv(oggpack_buffer *b, int bits) {
 	b->headptr += (bits >> 3);
 	if(b->headend < 1) _span(b);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 /* bits <= 32 */
 int32_t oggpack_read(oggpack_buffer *b, int bits) {
 	int32_t ret = oggpack_look(b, bits);
 	oggpack_adv(b, bits);
 	return (ret);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 uint32_t decpack(int32_t entry, int32_t used_entry, int32_t quantvals, codebook *b, oggpack_buffer *opb, int maptype) {
 	uint32_t ret = 0;
 	int      j;
@@ -1439,9 +1421,8 @@ uint32_t decpack(int32_t entry, int32_t used_entry, int32_t quantvals, codebook 
 	}
 	return 0; /* silence compiler */
 }
-//-------------------------------------------------------------------------------------------------
-/* 32 bit float (not IEEE; nonnormalized mantissa +
- biased exponent) : neeeeeee eeemmmmm mmmmmmmm mmmmmmmm
+//---------------------------------------------------------------------------------------------------------------------
+/* 32 bit float (not IEEE; nonnormalized mantissa + biased exponent) : neeeeeee eeemmmmm mmmmmmmm mmmmmmmm
  Why not IEEE?  It's just not that important here. */
 
 int32_t _float32_unpack(int32_t val, int *point) {
@@ -1460,28 +1441,24 @@ int32_t _float32_unpack(int32_t val, int *point) {
 	else { *point = -9999; }
 	return mant;
 }
-//-------------------------------------------------------------------------------------------------
-/* choose the smallest supported node size that fits our decode table.
- Legal bytewidths are 1/1 1/2 2/2 2/4 4/4 */
+//---------------------------------------------------------------------------------------------------------------------
+/* choose the smallest supported node size that fits our decode table. Legal bytewidths are 1/1 1/2 2/2 2/4 4/4 */
 int _determine_node_bytes(int32_t used, int leafwidth) {
-	/* special case small books to size 4 to avoid multiple special
-	 cases in repack */
+	/* special case small books to size 4 to avoid multiple special cases in repack */
 	if(used < 2) return 4;
 
 	if(leafwidth == 3) leafwidth = 4;
 	if(_ilog((3 * used - 6)) + 1 <= leafwidth * 4) return leafwidth / 2 ? leafwidth / 2 : 1;
 	return leafwidth;
 }
-//-------------------------------------------------------------------------------------------------
-/* convenience/clarity; leaves are specified as multiple of node word
- size (1 or 2) */
+//---------------------------------------------------------------------------------------------------------------------
+/* convenience/clarity; leaves are specified as multiple of node word size (1 or 2) */
 int _determine_leaf_words(int nodeb, int leafwidth) {
 	if(leafwidth > nodeb) return 2;
 	return 1;
 }
-//-------------------------------------------------------------------------------------------------
-/* given a list of word lengths, number of used entries, and byte
- width of a leaf, generate the decode table */
+//---------------------------------------------------------------------------------------------------------------------
+/* given a list of word lengths, number of used entries, and byte width of a leaf, generate the decode table */
 int _make_words(char *l, int32_t n, uint32_t *r, int32_t quantvals, codebook *b, oggpack_buffer *opb, int maptype) {
 	int32_t  i, j, count = 0;
 	int32_t  top = 0;
@@ -1519,8 +1496,7 @@ int _make_words(char *l, int32_t n, uint32_t *r, int32_t quantvals, codebook *b,
 					r[chase * 2 + bit] = decpack(i, count++, quantvals, b, opb, maptype) | 0x80000000;
 				}
 
-				/* Look to see if the next shorter marker points to the node
-				 above. if so, update it and repeat.  */
+				/* Look to see if the next shorter marker points to the node above. if so, update it and repeat.  */
 				for(j = length; j > 0; j--) {
 					if(marker[j] & 1) {
 						marker[j] = marker[j - 1] << 1;
@@ -1529,9 +1505,8 @@ int _make_words(char *l, int32_t n, uint32_t *r, int32_t quantvals, codebook *b,
 					marker[j]++;
 				}
 
-				/* prune the tree; the implicit invariant says all the int32_ter
-				 markers were dangling from our just-taken node.  Dangle them
-				 from our *new* node. */
+				/* prune the tree; the implicit invariant says all the int32_ter markers were dangling from our just-taken node.
+          Dangle them from our *new* node. */
 				for(j = length + 1; j < 33; j++)
 					if((marker[j] >> 1) == entry) {
 						entry = marker[j];
@@ -1545,15 +1520,14 @@ int _make_words(char *l, int32_t n, uint32_t *r, int32_t quantvals, codebook *b,
 
 	return 0;
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int _make_decode_table(codebook *s, char *lengthlist, int32_t quantvals, oggpack_buffer *opb, int maptype) {
 	int       i;
 	uint32_t *work;
 
 	if(s->dec_nodeb == 4) {
 		s->dec_table = malloc((s->used_entries * 2 + 1) * sizeof(*work));
-		/* +1 (rather than -2) is to accommodate 0 and 1 sized books,
-		 which are specialcased to nodeb==4 */
+		/* +1 (rather than -2) is to accommodate 0 and 1 sized books, which are specialcased to nodeb==4 */
 		if(_make_words(lengthlist, s->entries, (uint32_t *)s->dec_table, quantvals, s, opb, maptype)) return 1;
 
 		return 0;
@@ -1576,8 +1550,7 @@ int _make_decode_table(codebook *s, char *lengthlist, int32_t quantvals, oggpack
 		}
 	}
 	else {
-		/* more complex; we have to do a two-pass repack that updates the
-		 node indexing. */
+		/* more complex; we have to do a two-pass repack that updates the node indexing. */
 		int32_t top = s->used_entries * 3 - 2;
 		if(s->dec_nodeb == 1) {
 			uint8_t *out = (uint8_t *)s->dec_table;
@@ -1652,17 +1625,13 @@ int _make_decode_table(codebook *s, char *lengthlist, int32_t quantvals, oggpack
 
 	return 0;
 }
-//-------------------------------------------------------------------------------------------------
-/* most of the time, entries%dimensions == 0, but we need to be
- well defined.  We define that the possible vales at each
- scalar is values == entries/dim.  If entries%dim != 0, we'll
- have 'too few' values (values*dim<entries), which means that
- we'll have 'left over' entries; left over entries use zeroed
- values (and are wasted).  So don't generate codebooks like
- that */
-/* there might be a straightforward one-line way to do the below
- that's portable and totally safe against roundoff, but I haven't
- thought of it.  Therefore, we opt on the side of caution */
+//---------------------------------------------------------------------------------------------------------------------
+/* most of the time, entries%dimensions == 0, but we need to be well defined.  We define that the possible vales at
+ each scalar is values == entries/dim.  If entries%dim != 0, we'll have 'too few' values (values*dim<entries), which
+ means that we'll have 'left over' entries; left over entries use zeroed values (and are wasted).  So don't generate
+ codebooks like that */
+/* there might be a straightforward one-line way to do the below that's portable and totally safe against roundoff, but
+ I haven't thought of it.  Therefore, we opt on the side of caution */
 int32_t _book_maptype1_quantvals(codebook *b) {
 	/* get us a starting hint, we'll polish it below */
 	int bits = _ilog(b->entries);
@@ -1683,21 +1652,21 @@ int32_t _book_maptype1_quantvals(codebook *b) {
 		}
 	}
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void vorbis_book_clear(codebook *b) {
-	/* static book is not cleared; we're likely called on the lookup and
-	 the static codebook beint32_ts to the info struct */
+	/* static book is not cleared; we're likely called on the lookup and the static codebook beint32_ts to the
+   info struct */
 	if(b->q_val) free(b->q_val);
 	if(b->dec_table) free(b->dec_table);
 
 	memset(b, 0, sizeof(*b));
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int oggpack_eop(oggpack_buffer *b) {
 	if(b->headend < 0) return -1;
 	return 0;
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int vorbis_book_unpack(oggpack_buffer *opb, codebook *s) {
 	char   *lengthlist = NULL;
 	int     quantvals = 0;
@@ -1786,10 +1755,8 @@ int vorbis_book_unpack(oggpack_buffer *opb, codebook *s) {
 		case 0:
 
 			/* no mapping; decode type 0 */
-
 			/* how many bytes for the indexing? */
-			/* this is the correct boundary here; we lose one bit to
-			 node/leaf mark */
+			/* this is the correct boundary here; we lose one bit to node/leaf mark */
 			s->dec_nodeb = _determine_node_bytes(s->used_entries, _ilog(s->entries) / 8 + 1);
 			s->dec_leafw = _determine_leaf_words(s->dec_nodeb, _ilog(s->entries) / 8 + 1);
 			s->dec_type = 0;
@@ -1811,7 +1778,6 @@ int vorbis_book_unpack(oggpack_buffer *opb, codebook *s) {
 
 				if(total1 <= 4 && total1 <= total2) {
 					/* use dec_type 1: vector of packed values */
-
 					/* need quantized values before  */
 					s->q_val = alloca(sizeof(uint16_t) * quantvals);
 					for(i = 0; i < quantvals; i++) ((uint16_t *)s->q_val)[i] = oggpack_read(opb, s->q_bits);
@@ -1829,12 +1795,10 @@ int vorbis_book_unpack(oggpack_buffer *opb, codebook *s) {
 						goto _errout;
 					}
 
-					s->q_val = 0; /* about to go out of scope; _make_decode_table
-					 was using it */
+					s->q_val = 0; /* about to go out of scope; _make_decode_table was using it */
 				}
 				else {
 					/* use dec_type 2: packed vector of column offsets */
-
 					/* need quantized values before */
 					if(s->q_bits <= 8) {
 						s->q_val = malloc(quantvals);
@@ -1903,7 +1867,7 @@ _eofout:
 	vorbis_book_clear(s);
 	return -1;
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 uint32_t decode_packed_entry_number(codebook *book, oggpack_buffer *b) {
 	uint32_t chase = 0;
 	int      read = book->dec_maxlength;
@@ -1983,13 +1947,13 @@ uint32_t decode_packed_entry_number(codebook *book, oggpack_buffer *b) {
 	oggpack_adv(b, read + 1);
 	return (-1);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 /* returns the [original, not compacted] entry number or -1 on eof *********/
 int32_t vorbis_book_decode(codebook *book, oggpack_buffer *b) {
 	if(book->dec_type) return -1;
 	return decode_packed_entry_number(book, b);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int decode_map(codebook *s, oggpack_buffer *b, int32_t *v, int point) {
 	uint32_t entry = decode_packed_entry_number(s, b);
 	int      i;
@@ -2052,8 +2016,8 @@ int decode_map(codebook *s, oggpack_buffer *b, int32_t *v, int point) {
 
 	return 0;
 }
-//-------------------------------------------------------------------------------------------------
-/* returns 0 on OK or -1 on eof *************************************/
+//---------------------------------------------------------------------------------------------------------------------
+/* returns 0 on OK or -1 on eof
 /* decode vector / dim granularity guarding is done in the upper layer */
 int32_t vorbis_book_decodevs_add(codebook *book, int32_t *a, oggpack_buffer *b, int n, int point) {
 	if(book->used_entries > 0) {
@@ -2068,7 +2032,7 @@ int32_t vorbis_book_decodevs_add(codebook *book, int32_t *a, oggpack_buffer *b, 
 	}
 	return 0;
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 /* decode vector / dim granularity guarding is done in the upper layer */
 int32_t vorbis_book_decodev_add(codebook *book, int32_t *a, oggpack_buffer *b, int n, int point) {
 	if(book->used_entries > 0) {
@@ -2082,10 +2046,9 @@ int32_t vorbis_book_decodev_add(codebook *book, int32_t *a, oggpack_buffer *b, i
 	}
 	return 0;
 }
-//-------------------------------------------------------------------------------------------------
-/* unlike the others, we guard against n not being an integer number
- * of <dim> internally rather than in the upper layer (called only by
- * floor0) */
+//---------------------------------------------------------------------------------------------------------------------
+/* unlike the others, we guard against n not being an integer number * of <dim> internally rather than in the upper
+ layer (called only by * floor0) */
 int32_t vorbis_book_decodev_set(codebook *book, int32_t *a, oggpack_buffer *b, int n, int point) {
 	if(book->used_entries > 0) {
 		int32_t *v = (int32_t *)alloca(sizeof(*v) * book->dim);
@@ -2104,7 +2067,7 @@ int32_t vorbis_book_decodev_set(codebook *book, int32_t *a, oggpack_buffer *b, i
 
 	return 0;
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 /* decode vector / dim granularity guarding is done in the upper layer */
 int32_t vorbis_book_decodevv_add(codebook *book, int32_t **a, int32_t offset, int ch, oggpack_buffer *b, int n,
 								 int point) {
@@ -2129,7 +2092,7 @@ int32_t vorbis_book_decodevv_add(codebook *book, int32_t **a, int32_t offset, in
 	return 0;
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int vorbis_dsp_restart(vorbis_dsp_state *v) {
 	if(!v) return -1;
 	vorbis_info      *vi = v->vi;
@@ -2148,7 +2111,7 @@ int vorbis_dsp_restart(vorbis_dsp_state *v) {
 
 	return 0;
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 vorbis_dsp_state *vorbis_dsp_create(vorbis_info *vi) {
 	int i;
 
@@ -2171,7 +2134,7 @@ vorbis_dsp_state *vorbis_dsp_create(vorbis_info *vi) {
 	vorbis_dsp_restart(v);
 	return v;
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void vorbis_dsp_destroy(vorbis_dsp_state *v) {
 	int i;
 	if(v) {
@@ -2192,7 +2155,7 @@ void vorbis_dsp_destroy(vorbis_dsp_state *v) {
 		free(v);
 	}
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int32_t *_vorbis_window(int left) {
 	switch(left) {
 		case 32:
@@ -2215,7 +2178,7 @@ int32_t *_vorbis_window(int left) {
 			return (0);
 	}
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 /* pcm==0 indicates we just want the pending samples, no more */
 int vorbis_dsp_pcmout(vorbis_dsp_state *v, int16_t *pcm, int samples) {
 	vorbis_info      *vi = v->vi;
@@ -2234,13 +2197,13 @@ int vorbis_dsp_pcmout(vorbis_dsp_state *v, int16_t *pcm, int samples) {
 	}
 	return (0);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int vorbis_dsp_read(vorbis_dsp_state *v, int s) {
 	if(s && v->out_begin + s > v->out_end) return (OV_EINVAL);
 	v->out_begin += s;
 	return (0);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void oggpack_readinit(oggpack_buffer *b, ogg_reference *r) {
 	memset(b, 0, sizeof(*b));
 
@@ -2250,7 +2213,7 @@ void oggpack_readinit(oggpack_buffer *b, ogg_reference *r) {
 	b->headend = b->head->length;
 	_span(b);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int32_t vorbis_packet_blocksize(vorbis_info *vi, ogg_packet *op) {
 	codec_setup_info *ci = (codec_setup_info *)vi->codec_setup;
 	oggpack_buffer    opb;
@@ -2277,7 +2240,7 @@ int32_t vorbis_packet_blocksize(vorbis_info *vi, ogg_packet *op) {
 	return (ci->blocksizes[ci->mode_param[mode].blockflag]);
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int vorbis_dsp_synthesis(vorbis_dsp_state *vd, ogg_packet *op, int decodep) {
 	vorbis_info      *vi = vd->vi;
 	codec_setup_info *ci = (codec_setup_info *)vi->codec_setup;
@@ -2321,15 +2284,10 @@ int vorbis_dsp_synthesis(vorbis_dsp_state *vd, ogg_packet *op, int decodep) {
 		}
 	}
 
-	/* track the frame number... This is for convenience, but also
-	 making sure our last packet doesn't end with added padding.
-
-	 This is not foolproof!  It will be confused if we begin
-	 decoding at the last page after a seek or hole.  In that case,
-	 we don't have a starting point to judge where the last frame
-	 is.  For this reason, vorbisfile will always try to make sure
-	 it reads the last two marked pages in proper sequence */
-
+	/* track the frame number... This is for convenience, but also making sure our last packet doesn't end with added
+   padding. This is not foolproof!  It will be confused if we begin decoding at the last page after a seek or hole.
+   In that case, we don't have a starting point to judge where the last frame is.  For this reason, vorbisfile will
+   always try to make sure it reads the last two marked pages in proper sequence */
 	/* if we're out of sequence, dump granpos tracking until we sync back up */
 	if(vd->sequence == -1 || vd->sequence + 1 != op->packetno - 3) {
 		/* out of sequence; lose count */
@@ -2351,14 +2309,11 @@ int vorbis_dsp_synthesis(vorbis_dsp_state *vd, ogg_packet *op, int decodep) {
 
 			/* is this a short page? */
 			if(vd->sample_count > vd->granulepos) {
-				/* corner case; if this is both the first and last audio page,
-				 then spec says the end is cut, not beginning */
+				/* corner case; if this is both the first and last audio page, then spec says the end is cut, not beginning */
 				if(op->e_o_s) {
 					/* trim the end */
-					/* no preceeding granulepos; assume we started at zero (we'd
-					 have to in a short single-page stream) */
-					/* granulepos could be -1 due to a seek, but that would result
-					 in a int32_t coun t, not short count */
+					/* no preceeding granulepos; assume we started at zero (we'd have to in a short single-page stream) */
+					/* granulepos could be -1 due to a seek, but that would result in a int32_t coun t, not short count */
 
 					vd->out_end -= vd->sample_count - vd->granulepos;
 				}
@@ -2380,16 +2335,14 @@ int vorbis_dsp_synthesis(vorbis_dsp_state *vd, ogg_packet *op, int decodep) {
 					if(op->e_o_s) {
 						/* partial last frame.  Strip the extra samples off */
 						vd->out_end -= extra;
-					} /* else {Shouldn't happen *unless* the bitstream is out of
-					 spec.  Either way, believe the bitstream } */
-			}         /* else {Shouldn't happen *unless* the bitstream is out of
-					 spec.  Either way, believe the bitstream } */
+					}
+			}     /* else {Shouldn't happen *unless* the bitstream is out of spec.  Either way, believe the bitstream } */
 			vd->granulepos = op->granulepos;
 		}
 	}
 	return (0);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 /* interpolated lookup based fromdB function, domain -140dB to 0dB only */
 /* a is in n.12 format */
 
@@ -2398,7 +2351,7 @@ int32_t vorbis_fromdBlook_i(int32_t a) {
 	if(a < (-140 << 12)) return 0;
 	return FLOOR_fromdB_LOOKUP[((a + (140 << 12)) * 467) >> 20];
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void render_line(int n, int x0, int x1, int y0, int y1, int32_t *d) {
 	int dy = y1 - y0;
 	int adx = x1 - x0;
@@ -2424,7 +2377,7 @@ void render_line(int n, int x0, int x1, int y0, int y1, int32_t *d) {
 		d[x] = MULT31_SHIFT15(d[x], FLOOR_fromdB_LOOKUP[y]);
 	}
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 /* interpolated lookup based cos function, domain 0 to PI only */
 /* a is in 0.16 format, where 0==0, 2^^16-1==PI, return 0.14 */
 int32_t vorbis_coslook_i(int32_t a) {
@@ -2432,7 +2385,7 @@ int32_t vorbis_coslook_i(int32_t a) {
 	int d = a & COS_LOOKUP_I_MASK;
 	return COS_LOOKUP_I[i] - ((d * (COS_LOOKUP_I[i] - COS_LOOKUP_I[i + 1])) >> COS_LOOKUP_I_SHIFT);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 /* interpolated half-wave lookup based cos function */
 /* a is in 0.16 format, where 0==0, 2^^16==PI, return .LSP_FRACBITS */
 int32_t vorbis_coslook2_i(int32_t a) {
@@ -2441,7 +2394,7 @@ int32_t vorbis_coslook2_i(int32_t a) {
 	return ((COS_LOOKUP_I[i] << COS_LOOKUP_I_SHIFT) - d * (COS_LOOKUP_I[i] - COS_LOOKUP_I[i + 1])) >>
 		   (COS_LOOKUP_I_SHIFT - LSP_FRACBITS + 14);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 /* used in init only; interpolate the int32_t way */
 int32_t toBARK(int n) {
 	int i;
@@ -2451,7 +2404,7 @@ int32_t toBARK(int n) {
 	if(i == 54) { return 54 << 14; }
 	else { return (i << 14) + (((n - barklook[i]) * ((1UL << 31) / (barklook[i + 1] - barklook[i]))) >> 17); }
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int32_t vorbis_invsqlook_i(int32_t a, int32_t e) {
 	int32_t i = (a & 0x7fff) >> (INVSQ_LOOKUP_I_SHIFT - 1);
 	int32_t d = a & INVSQ_LOOKUP_I_MASK;                                /*  0.10 */
@@ -2461,7 +2414,7 @@ int32_t vorbis_invsqlook_i(int32_t a, int32_t e) {
 	e = (e >> 1) + 21;
 	return (val >> e);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void vorbis_lsp_to_curve(int32_t *curve, int n, int ln, int32_t *lsp, int m, int32_t amp, int32_t ampoffset,
 						 int32_t nyq) {
 	/* 0 <= m < 256 */
@@ -2548,9 +2501,7 @@ void vorbis_lsp_to_curve(int32_t *curve, int n, int ln, int32_t *lsp, int m, int
 		}
 		else {
 			/* even order filter; still symmetric */
-
-			/* p*=p(1-w), q*=q(1+w), let normalization drift because it isn't
-			 worth tracking step by step */
+			/* p*=p(1-w), q*=q(1+w), let normalization drift because it isn't	 worth tracking step by step */
 
 			pi >>= shift;
 			qi >>= shift;
@@ -2565,9 +2516,8 @@ void vorbis_lsp_to_curve(int32_t *curve, int n, int ln, int32_t *lsp, int m, int
 			qi = (qi + pi) >> 14;
 		}
 
-		/* we've let the normalization drift because it wasn't important;
-		 however, for the lookup, things must be normalized again.  We
-		 need at most one right shift or a number of left shifts */
+		/* we've let the normalization drift because it wasn't important; however, for the lookup, things must be
+     normalized again. We need at most one right shift or a number of left shifts */
 
 		if(qi & 0xffff0000) { /* checks for 1.xxxxxxxxxxxxxxxx */
 			qi >>= 1;
@@ -2621,12 +2571,12 @@ void vorbis_lsp_to_curve(int32_t *curve, int n, int ln, int32_t *lsp, int m, int
 		}
 	}
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void floor0_free_info(vorbis_info_floor *i) {
 	vorbis_info_floor0 *info = (vorbis_info_floor0 *)i;
 	if(info) free(info);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 vorbis_info_floor *floor0_info_unpack(vorbis_info *vi, oggpack_buffer *opb) {
 	codec_setup_info *ci = (codec_setup_info *)vi->codec_setup;
 	int               j;
@@ -2655,12 +2605,12 @@ err_out:
 	floor0_free_info(info);
 	return (NULL);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int floor0_memosize(vorbis_info_floor *i) {
 	vorbis_info_floor0 *info = (vorbis_info_floor0 *)i;
 	return info->order + 1;
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int32_t *floor0_inverse1(vorbis_dsp_state *vd, vorbis_info_floor *i, int32_t *lsp) {
 	vorbis_info_floor0 *info = (vorbis_info_floor0 *)i;
 	int                 j, k;
@@ -2690,7 +2640,7 @@ int32_t *floor0_inverse1(vorbis_dsp_state *vd, vorbis_info_floor *i, int32_t *ls
 eop:
 	return (NULL);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int floor0_inverse2(vorbis_dsp_state *vd, vorbis_info_floor *i, int32_t *lsp, int32_t *out) {
 	vorbis_info_floor0 *info = (vorbis_info_floor0 *)i;
 	codec_setup_info   *ci = (codec_setup_info *)vd->vi->codec_setup;
@@ -2707,7 +2657,7 @@ int floor0_inverse2(vorbis_dsp_state *vd, vorbis_info_floor *i, int32_t *lsp, in
 	return (0);
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void floor1_free_info(vorbis_info_floor *i) {
 	vorbis_info_floor1 *info = (vorbis_info_floor1 *)i;
 	if(info) {
@@ -2721,7 +2671,7 @@ void floor1_free_info(vorbis_info_floor *i) {
 		free(info);
 	}
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void vorbis_mergesort(uint8_t *index, uint16_t *vals, uint16_t n) {
 	uint16_t i, j;
 	uint8_t *temp;
@@ -2756,7 +2706,7 @@ void vorbis_mergesort(uint8_t *index, uint16_t *vals, uint16_t n) {
 		free(B);
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 vorbis_info_floor *floor1_info_unpack(vorbis_info *vi, oggpack_buffer *opb) {
 	codec_setup_info *ci = (codec_setup_info *)vi->codec_setup;
 	int               j, k, count = 0, maxclass = -1, rangebits;
@@ -2814,8 +2764,7 @@ vorbis_info_floor *floor1_info_unpack(vorbis_info *vi, oggpack_buffer *opb) {
 	for(j = 0; j < info->posts; j++) info->forward_index[j] = j;
 	vorbis_mergesort(info->forward_index, info->postlist, info->posts);
 
-	/* discover our neighbors for decode where we don't use fit flags
-	 (that would push the neighbors outward) */
+	/* discover our neighbors for decode where we don't use fit flags (that would push the neighbors outward) */
 	for(j = 0; j < info->posts - 2; j++) {
 		int lo = 0;
 		int hi = 1;
@@ -2843,7 +2792,7 @@ err_out:
 	floor1_free_info(info);
 	return (NULL);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int render_point(int x0, int x1, int y0, int y1, int x) {
 	y0 &= 0x7fff; /* mask off flag */
 	y1 &= 0x7fff;
@@ -2860,12 +2809,12 @@ int render_point(int x0, int x1, int y0, int y1, int x) {
 	}
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int floor1_memosize(vorbis_info_floor *i) {
 	vorbis_info_floor1 *info = (vorbis_info_floor1 *)i;
 	return info->posts;
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int32_t *floor1_inverse1(vorbis_dsp_state *vd, vorbis_info_floor *in, int32_t *fit_value) {
 	vorbis_info_floor1 *info = (vorbis_info_floor1 *)in;
 	codec_setup_info   *ci = (codec_setup_info *)vd->vi->codec_setup;
@@ -2938,7 +2887,7 @@ int32_t *floor1_inverse1(vorbis_dsp_state *vd, vorbis_info_floor *in, int32_t *f
 eop:
 	return (NULL);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int floor1_inverse2(vorbis_dsp_state *vd, vorbis_info_floor *in, int32_t *fit_value, int32_t *out) {
 	vorbis_info_floor1 *info = (vorbis_info_floor1 *)in;
 
@@ -2971,15 +2920,15 @@ int floor1_inverse2(vorbis_dsp_state *vd, vorbis_info_floor *in, int32_t *fit_va
 	return (0);
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void _v_readstring(oggpack_buffer *o, char *buf, int bytes) {
 	while(bytes--) { *buf++ = oggpack_read(o, 8); }
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void vorbis_comment_init(vorbis_comment *vc) { memset(vc, 0, sizeof(*vc)); }
-//-------------------------------------------------------------------------------------------------
-/* This is more or less the same as strncasecmp - but that doesn't exist
- * everywhere, and this is a fairly trivial function, so we include it */
+//---------------------------------------------------------------------------------------------------------------------
+/* This is more or less the same as strncasecmp - but that doesn't exist * everywhere, and this is a fairly trivial
+ function, so we include it */
 int tagcompare(const char *s1, const char *s2, int n) {
 	int c = 0;
 	while(c < n) {
@@ -2988,7 +2937,7 @@ int tagcompare(const char *s1, const char *s2, int n) {
 	}
 	return 0;
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 char *vorbis_comment_query(vorbis_comment *vc, char *tag, int count) {
 	int32_t i;
 	int     found = 0;
@@ -3008,7 +2957,7 @@ char *vorbis_comment_query(vorbis_comment *vc, char *tag, int count) {
 	}
 	return NULL; /* didn't find anything */
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int vorbis_comment_query_count(vorbis_comment *vc, char *tag) {
 	int   i, count = 0;
 	int   taglen = strlen(tag) + 1; /* +1 for the = we append */
@@ -3022,7 +2971,7 @@ int vorbis_comment_query_count(vorbis_comment *vc, char *tag) {
 
 	return count;
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void vorbis_comment_clear(vorbis_comment *vc) {
 	if(vc) {
 		int32_t i;
@@ -3034,20 +2983,20 @@ void vorbis_comment_clear(vorbis_comment *vc) {
 	}
 	memset(vc, 0, sizeof(*vc));
 }
-//-------------------------------------------------------------------------------------------------
-/* blocksize 0 is guaranteed to be short, 1 is guarantted to be int32_t.
- They may be equal, but short will never ge greater than int32_t */
+//---------------------------------------------------------------------------------------------------------------------
+/* blocksize 0 is guaranteed to be short, 1 is guarantted to be int32_t. They may be equal, but short will never ge
+ greater than int32_t */
 int vorbis_info_blocksize(vorbis_info *vi, int zo) {
 	codec_setup_info *ci = (codec_setup_info *)vi->codec_setup;
 	return ci ? ci->blocksizes[zo] : -1;
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 /* used by synthesis, which has a full, alloced vi */
 void vorbis_info_init(vorbis_info *vi) {
 	memset(vi, 0, sizeof(*vi));
 	vi->codec_setup = (codec_setup_info *)calloc(1, sizeof(codec_setup_info));
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void vorbis_info_clear(vorbis_info *vi) {
 	codec_setup_info *ci = (codec_setup_info *)vi->codec_setup;
 	int               i;
@@ -3087,7 +3036,7 @@ void vorbis_info_clear(vorbis_info *vi) {
 	memset(vi, 0, sizeof(*vi));
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int _vorbis_unpack_info(vorbis_info *vi, oggpack_buffer *opb) {
 	codec_setup_info *ci = (codec_setup_info *)vi->codec_setup;
 	if(!ci) return (OV_EFAULT);
@@ -3121,7 +3070,7 @@ err_out:
 	vorbis_info_clear(vi);
 	return (OV_EBADHEADER);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int _vorbis_unpack_comment(vorbis_comment *vc, oggpack_buffer *opb) {
 	int i;
 	int vendorlen = oggpack_read(opb, 32);
@@ -3148,7 +3097,7 @@ err_out:
 	vorbis_comment_clear(vc);
 	return (OV_EBADHEADER);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 /* all of the real encoding details are here.  The modes, books, everything */
 int _vorbis_unpack_books(vorbis_info *vi, oggpack_buffer *opb) {
 	codec_setup_info *ci = (codec_setup_info *)vi->codec_setup;
@@ -3212,11 +3161,9 @@ err_out:
 	vorbis_info_clear(vi);
 	return (OV_EBADHEADER);
 }
-//-------------------------------------------------------------------------------------------------
-/* The Vorbis header is in three packets; the initial small packet in
- the first page that identifies basic parameters, a second packet
- with bitstream comments and a third packet that holds the
- codebook. */
+//---------------------------------------------------------------------------------------------------------------------
+/* The Vorbis header is in three packets; the initial small packet in the first page that identifies basic parameters,
+ a second packet with bitstream comments and a third packet that holds the codebook. */
 
 int vorbis_dsp_headerin(vorbis_info *vi, vorbis_comment *vc, ogg_packet *op) {
 	oggpack_buffer opb;
@@ -3274,7 +3221,7 @@ int vorbis_dsp_headerin(vorbis_info *vi, vorbis_comment *vc, ogg_packet *op) {
 	return (OV_EBADHEADER);
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void mapping_clear_info(vorbis_info_mapping *info) {
 	if(info) {
 		if(info->chmuxlist) free(info->chmuxlist);
@@ -3283,7 +3230,7 @@ void mapping_clear_info(vorbis_info_mapping *info) {
 		memset(info, 0, sizeof(*info));
 	}
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 /* also responsible for range checking */
 int mapping_info_unpack(vorbis_info_mapping *info, vorbis_info *vi, oggpack_buffer *opb) {
 	int               i;
@@ -3333,7 +3280,7 @@ err_out:
 	mapping_clear_info(info);
 	return -1;
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int mapping_inverse(vorbis_dsp_state *vd, vorbis_info_mapping *info) {
 	vorbis_info      *vi = vd->vi;
 	codec_setup_info *ci = (codec_setup_info *)vi->codec_setup;
@@ -3462,7 +3409,7 @@ int mapping_inverse(vorbis_dsp_state *vd, vorbis_info_mapping *info) {
 	return (0);
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void presymmetry(int32_t *in, int n2, int step) {
 	int32_t       *aX;
 	int32_t       *bX;
@@ -3504,7 +3451,7 @@ void presymmetry(int32_t *in, int n2, int step) {
 		bX += 4;
 	} while(aX >= in + n4);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 /* 8 point butterfly (in place) */
 void mdct_butterfly_8(int32_t *x) {
 	int32_t r0 = x[0] + x[1];
@@ -3525,7 +3472,7 @@ void mdct_butterfly_8(int32_t *x) {
 	x[6] = r4 + r0;
 	x[7] = r6 + r2;
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 /* 16 point butterfly (in place, 4 register) */
 void mdct_butterfly_16(int32_t *x) {
 	int32_t r0, r1, r2, r3;
@@ -3559,7 +3506,7 @@ void mdct_butterfly_16(int32_t *x) {
 	mdct_butterfly_8(x);
 	mdct_butterfly_8(x + 8);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 /* 32 point butterfly (in place, 4 register) */
 void mdct_butterfly_32(int32_t *x) {
 	int32_t r0, r1, r2, r3;
@@ -3615,7 +3562,7 @@ void mdct_butterfly_32(int32_t *x) {
 	mdct_butterfly_16(x);
 	mdct_butterfly_16(x + 16);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 /* N/stage point generic N stage butterfly (in place, 2 register) */
 void mdct_butterfly_generic(int32_t *x, int points, int step) {
 	const int32_t *T = sincos_lookup0;
@@ -3654,7 +3601,7 @@ void mdct_butterfly_generic(int32_t *x, int points, int step) {
 		x2 -= 4;
 	} while(T > sincos_lookup0);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void mdct_butterflies(int32_t *x, int points, int shift) {
 	int stages = 8 - shift;
 	int i, j;
@@ -3665,12 +3612,12 @@ void mdct_butterflies(int32_t *x, int points, int shift) {
 
 	for(j = 0; j < points; j += 32) mdct_butterfly_32(x + j);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int bitrev12(int x) {
 	uint8_t bitrev[16] = {0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15};
 	return bitrev[x >> 8] | (bitrev[(x & 0x0f0) >> 4] << 4) | (((int)bitrev[x & 0x00f]) << 8);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void mdct_bitreverse(int32_t *x, int n, int shift) {
 	int      bit = 0;
 	int32_t *w = x + (n >> 1);
@@ -3693,7 +3640,7 @@ void mdct_bitreverse(int32_t *x, int n, int shift) {
 		}
 	} while(w > x);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void mdct_step7(int32_t *x, int n, int step) {
 	int32_t       *w0 = x;
 	int32_t       *w1 = x + (n >> 1);
@@ -3738,7 +3685,7 @@ void mdct_step7(int32_t *x, int n, int step) {
 		w0 += 2;
 	} while(w0 < w1);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void mdct_step8(int32_t *x, int n, int step) {
 	const int32_t *T;
 	const int32_t *V;
@@ -3822,9 +3769,8 @@ void mdct_step8(int32_t *x, int n, int step) {
 		}
 	}
 }
-//-------------------------------------------------------------------------------------------------
-/* partial; doesn't perform last-step deinterleave/unrolling.  That
- can be done more efficiently during pcm output */
+//---------------------------------------------------------------------------------------------------------------------
+/* partial; doesn't perform last-step deinterleave/unrolling. That can be done more efficiently during pcm output */
 void mdct_backward(int n, int32_t *in) {
 	int shift;
 	int step;
@@ -3840,7 +3786,7 @@ void mdct_backward(int n, int32_t *in) {
 	mdct_step7(in, n, step);
 	mdct_step8(in, n, step);
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void mdct_shift_right(int n, int32_t *in, int32_t *right) {
 	int i;
 	n >>= 2;
@@ -3848,7 +3794,7 @@ void mdct_shift_right(int n, int32_t *in, int32_t *right) {
 
 	for(i = 0; i < n; i++) right[i] = in[i << 1];
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void mdct_unroll_lap(int n0, int n1, int lW, int W, int *in, int *right, const int *w0, const int *w1, short int *out,
 					 int step, int start, /* samples, this frame */
 					 int end /* samples, this frame */) {
@@ -3922,7 +3868,7 @@ void mdct_unroll_lap(int n0, int n1, int lW, int W, int *in, int *right, const i
 	}
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void res_clear_info(vorbis_info_residue *info) {
 	if(info) {
 		if(info->stagemasks) free(info->stagemasks);
@@ -3930,7 +3876,7 @@ void res_clear_info(vorbis_info_residue *info) {
 		memset(info, 0, sizeof(*info));
 	}
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 /* vorbis_info is for range checking */
 int res_unpack(vorbis_info_residue *info, vorbis_info *vi, oggpack_buffer *opb) {
 	int               j, k;
@@ -3975,7 +3921,7 @@ errout:
 	res_clear_info(info);
 	return 1;
 }
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int res_inverse(vorbis_dsp_state *vd, vorbis_info_residue *info, int32_t **in, int *nonzero, int ch) {
 	int               i, j, k, s, used = 0;
 	codec_setup_info *ci = (codec_setup_info *)vd->vi->codec_setup;
@@ -4082,8 +4028,7 @@ int res_inverse(vorbis_dsp_state *vd, vorbis_info_residue *info, int32_t **in, i
 						temp = vorbis_book_decode(phrasebook, &vd->opb);
 						if(temp == -1) goto eopbreak;
 
-						/* this can be done quickly in assembly due to the quotient
-						 always being at most six bits */
+						/* this can be done quickly in assembly due to the quotient always being at most six bits */
 						for(k = 0; k < partitions_per_word; k++) {
 							uint32_t div = partword[i + k];
 							partword[i + k] = temp / div;

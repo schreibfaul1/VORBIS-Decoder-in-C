@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include "vorbisfile.h"
 
-//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------
 #define CHUNKSIZE     1024
 #define VI_TRANSFORMB 1
 #define VI_WINDOWB    1
@@ -13,7 +13,6 @@
 #define VI_RESB       3
 #define VI_MAPB       1
 
-#define XdB(n)       (n)
 #define LSP_FRACBITS 14
 
 #define OV_FALSE -1
@@ -60,9 +59,8 @@
 		ptr = head->buffer->data + head->begin; \
 		end = head->length;                     \
 	}
-//-------------------------------------------------------------------------------------------------
-typedef struct codebook
-{
+//---------------------------------------------------------------------------------------------------------------------
+typedef struct codebook{
 	int32_t dim;          /* codebook dimensions (elements per vector) */
 	int32_t entries;      /* codebook entries */
 	int32_t used_entries; /* populated codebook entries */
@@ -87,8 +85,7 @@ typedef struct codebook
 struct vorbis_dsp_state;
 typedef struct vorbis_dsp_state vorbis_dsp_state;
 
-typedef struct coupling_step
-{  // Mapping backend generic
+typedef struct coupling_step{  // Mapping backend generic
 	uint8_t mag;
 	uint8_t ang;
 } coupling_step;
@@ -108,8 +105,7 @@ typedef struct vorbis_info_mapping
 	coupling_step *coupling;
 } vorbis_info_mapping;
 
-typedef struct codec_setup_info
-{                                        // Vorbis supports only short and int32_t blocks, but allows the
+typedef struct codec_setup_info{         // Vorbis supports only short and int32_t blocks, but allows the
 	int32_t              blocksizes[2];  // encoder to choose the sizes
 	int                  modes;          // modes are the primary means of supporting on-the-fly different
 	int                  maps;           // blocksizes, different channel mappings (LR or M/A),
@@ -124,12 +120,10 @@ typedef struct codec_setup_info
 	codebook            *book_param;
 } codec_setup_info;
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 
-union magic
-{
-	struct
-	{
+union magic{
+	struct{
 		int32_t lo;
 		int32_t hi;
 	} halves;
@@ -167,7 +161,7 @@ inline int32_t CLIP_TO_15(int32_t x) {
 	return (ret);
 }
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 void     _span(oggpack_buffer_t *b);
 int      _ilog(uint32_t v);
 int      _ilog(uint32_t v);

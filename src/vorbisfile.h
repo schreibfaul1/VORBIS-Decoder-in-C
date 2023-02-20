@@ -282,7 +282,7 @@ typedef struct OggVorbis_File
 	ov_callbacks        callbacks;
 } OggVorbis_File;
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 int32_t _get_data(OggVorbis_File *vf);
 void    _seek_helper(OggVorbis_File *vf, int64_t offset);
 int64_t _get_next_page(OggVorbis_File *vf, ogg_page *og, int64_t boundary);
