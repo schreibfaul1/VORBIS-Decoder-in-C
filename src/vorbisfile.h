@@ -150,7 +150,7 @@ typedef struct vorbis_info{
 typedef void vorbis_info_floor;
 
 struct vorbis_dsp_state { // vorbis_dsp_state buffers the current vorbis audio analysis/synthesis state.
-	vorbis_info *vi;      // The DSP state beint32_ts to a specific logical bitstream
+	vorbis_info *vi;      // The DSP state be int32_ts to a specific logical bitstream
 	oggpack_buffer_t opb;
 	int32_t **work;
 	int32_t **mdctright;

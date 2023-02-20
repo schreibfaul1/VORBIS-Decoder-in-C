@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <ctype.h>
 #include <math.h>
-#include "misc.h"
 #include "ivorbiscodec.h"
 #include "vorbisDecoder.h"
 #include "vorbisfile.h"
@@ -3584,7 +3583,7 @@ int decode_map(codebook *s, oggpack_buffer *b, int32_t *v, int point) {
 	}
 	case 3: {
 		/* offset into array */
-		void *ptr = s->q_val + entry * s->q_pack;
+		void *ptr = (int*) s->q_val + entry * s->q_pack;
 
 		if (s->q_bits <= 8) {
 			for (i = 0; i < s->dim; i++)

@@ -22,7 +22,9 @@
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
-#include "misc.h"
+#include <sys/types.h>
+#include "ivorbiscodec.h"
+
 
 #define  NOTOPEN   0
 #define  PARTOPEN  1
@@ -519,17 +521,14 @@ int _fetch_and_process_packet(OggVorbis_File *vf, int readp, int spanp) {
 				if (result > 0) {
 					/* got a packet.  process it */
 					granulepos = op.granulepos;
-					if (!vorbis_dsp_synthesis(vf->vd, &op, 1)) { /* lazy check for lazy
-					 header handling.  The
-					 header packets aren't
-					 audio, so if/when we
-					 submit them,
-					 vorbis_synthesis will
-					 reject them */
+					if (!vorbis_dsp_synthesis(vf->vd, &op, 1)) { /* lazy check for lazy	 header handling.  The
+					 header packets aren't audio, so if/when we submit them, vorbis_synthesis will reject them */
 
-						vf->samptrack += vorbis_dsp_pcmout(vf->vd, NULL, 0);
+						int pco = vorbis_dsp_pcmout(vf->vd, NULL, 0);
+						vf->samptrack += pco;
+
 						vf->bittrack += op.bytes * 8;
-
+						printf("%i   %i\n", op.bytes, pco);
 						/* update the pcm offset. */
 						if (granulepos != -1 && !op.e_o_s) {
 							int link = (vf->seekable ? vf->current_link : 0);
