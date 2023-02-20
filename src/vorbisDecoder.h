@@ -2,7 +2,6 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include "ivorbiscodec.h"
 #include "vorbisfile.h"
 
 
@@ -19,6 +18,22 @@
 
 #define XdB(n) (n)
 #define LSP_FRACBITS 14
+
+#define OV_FALSE      -1
+#define OV_EOF        -2
+#define OV_HOLE       -3
+
+#define OV_EREAD      -128
+#define OV_EFAULT     -129
+#define OV_EIMPL      -130
+#define OV_EINVAL     -131
+#define OV_ENOTVORBIS -132
+#define OV_EBADHEADER -133
+#define OV_EVERSION   -134
+#define OV_ENOTAUDIO  -135
+#define OV_EBADPACKET -136
+#define OV_EBADLINK   -137
+#define OV_ENOSEEK    -138
 
 #define INVSQ_LOOKUP_I_SHIFT 10
 #define INVSQ_LOOKUP_I_MASK 1023

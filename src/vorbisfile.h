@@ -22,6 +22,10 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#define FINFLAG 0x80000000UL
+#define FINMASK 0x7fffffffUL
+
+
 typedef struct ogg_buffer_state{
   struct ogg_buffer    *unused_buffers;
   struct ogg_reference *unused_references;
@@ -295,6 +299,62 @@ ogg_buffer_state_t* ogg_buffer_create(void);
 void _ogg_buffer_destroy(ogg_buffer_state_t *bs);
 void ogg_buffer_destroy(ogg_buffer_state_t *bs);
 ogg_buffer_t* _fetch_buffer(ogg_buffer_state_t *bs, long bytes);
+unsigned char* ogg_sync_bufferin(ogg_sync_state_t *oy, long bytes);
+ogg_reference_t* ogg_buffer_alloc(ogg_buffer_state_t *bs, long bytes);
+void ogg_buffer_realloc(ogg_reference_t * _or, long bytes);
+ogg_reference_t* _fetch_ref(ogg_buffer_state_t *bs);
+ogg_buffer_t* _fetch_buffer(ogg_buffer_state_t *bs, long bytes);
+int ogg_sync_wrote(ogg_sync_state_t *oy, long bytes);
+int ogg_sync_reset(ogg_sync_state_t *oy);
+void ogg_buffer_release(ogg_reference_t *_or);
+void ogg_buffer_release_one(ogg_reference_t *_or);
+void _ogg_buffer_destroy(ogg_buffer_state_t *bs);
+void ogg_buffer_destroy(ogg_buffer_state_t *bs);
+long ogg_sync_pageseek(ogg_sync_state_t *oy, ogg_page *og);
+int oggbyte_init(oggbyte_buffer_t *b, ogg_reference_t *_or);
+unsigned char oggbyte_read1(oggbyte_buffer_t *b, int pos) ;
+int64_t oggbyte_read8(oggbyte_buffer_t *b, int pos);
+void _positionB(oggbyte_buffer_t *b, int pos);
+void _positionF(oggbyte_buffer_t *b, int pos);
+uint32_t oggbyte_read4(oggbyte_buffer_t *b, int pos);
+void oggbyte_set4(oggbyte_buffer_t *b, uint32_t val, int pos);
+uint32_t _checksum(ogg_reference_t *_or, int bytes);
+ogg_reference_t* ogg_buffer_split(ogg_reference_t **tail, ogg_reference_t **head, long pos);
+void _ogg_buffer_mark_one(ogg_reference_t *_or);
+void ogg_buffer_mark(ogg_reference_t *_or);
+ogg_reference_t* ogg_buffer_pretruncate(ogg_reference_t *_or, long pos);
+int ogg_page_version(ogg_page *og) ;
+int ogg_page_continued(ogg_page *og);
+int ogg_page_bos(ogg_page *og);
+int ogg_page_eos(ogg_page *og) ;
+int64_t ogg_page_granulepos(ogg_page *og) ;
+uint32_t ogg_page_serialno(ogg_page *og);
+uint32_t ogg_page_pageno(ogg_page *og) ;
+int ogg_page_release(ogg_page *og);
+int ogg_stream_reset_serialno(ogg_stream_state_t *os, int serialno);
+int ogg_stream_pagein(ogg_stream_state_t *os, ogg_page *og);
+ogg_reference_t* ogg_buffer_walk(ogg_reference_t *_or);
+ogg_reference_t* ogg_buffer_cat(ogg_reference_t *tail, ogg_reference_t *head);
+int ogg_stream_packetout(ogg_stream_state_t *os, ogg_packet *op) ;
+int ogg_stream_packetpeek(ogg_stream_state_t *os, ogg_packet *op);
+int ogg_packet_release(ogg_packet *op);
+int _packetout(ogg_stream_state_t *os, ogg_packet *op, int adv);
+void _span_queued_page(ogg_stream_state_t *os);
+void _next_lace(oggbyte_buffer_t *ob, ogg_stream_state_t *os);
+ogg_buffer_state_t* ogg_buffer_create(void);
+ogg_sync_state_t* ogg_sync_create(void);
+int ogg_sync_destroy(ogg_sync_state_t *oy);
+ogg_stream_state_t* ogg_stream_create(int serialno);
+int ogg_stream_destroy(ogg_stream_state_t *os);
+int ogg_stream_reset(ogg_stream_state_t *os);
+void ogg_page_dup(ogg_page *dup, ogg_page *orig);
+ogg_reference_t* ogg_buffer_dup(ogg_reference_t *_or);
+
+
+
+
+
+
 
 
 

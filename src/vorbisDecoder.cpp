@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <ctype.h>
 #include <math.h>
-#include "ivorbiscodec.h"
 #include "vorbisDecoder.h"
 #include "vorbisfile.h"
 
