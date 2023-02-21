@@ -9,11 +9,6 @@
  * THE OggVorbis 'TREMOR' SOURCE CODE IS (C) COPYRIGHT 1994-2003    *
  * BY THE Xiph.Org FOUNDATION http://www.xiph.org/                  *
  *                                                                  *
- ********************************************************************
-
- function: stdio-based convenience library for opening/seeking/decoding
- last mod: $Id: vorbisfile.c,v 1.6.2.5 2003/11/20 06:16:17 xiphmont Exp $
-
  ********************************************************************/
 
 #pragma GCC diagnostic ignored "-Wconversion"
