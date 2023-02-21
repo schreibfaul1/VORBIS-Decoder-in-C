@@ -5,3 +5,7 @@ src/build/Debug/main.o
 src/build/Debug/outDebug
 src/build/Debug/vorbisDecoder.o
 src/build/Debug/vorbisfile.o
+src/build/Release/outRelease
+src/build/Release/vorbisDecoder.o
+src/build/Release/vorbisfile.o
+src/build/Release/main.o
