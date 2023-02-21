@@ -9,11 +9,8 @@
  * THE OggVorbis 'TREMOR' SOURCE CODE IS (C) COPYRIGHT 1994-2003    *
  * BY THE Xiph.Org FOUNDATION http://www.xiph.org/                  *
  *                                                                  *
- ********************************************************************
-
- function: subsumed libogg includes
-
  ********************************************************************/
+
 #ifndef _OGG_H
 #define _OGG_H
 
