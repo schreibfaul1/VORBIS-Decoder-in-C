@@ -1,4 +1,12 @@
 
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wtype-limits"
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wshift-negative-value"
+
 #include "vorbisDecoder.h"
 #include <ctype.h>
 #include <math.h>
@@ -1315,7 +1323,7 @@ uint8_t _ilog(uint32_t v) {
 //---------------------------------------------------------------------------------------------------------------------
 
 /* Read in bits without advancing the bitptr; bits <= 32 */
-int32_t oggpack_look(oggpack_buffer *b, int bits) {
+int32_t oggpack_look(oggpack_buffer *b, uint16_t bits) {
 	uint32_t m = mask[bits];
 	int32_t  ret = 0;
 
@@ -1373,7 +1381,7 @@ int32_t oggpack_look(oggpack_buffer *b, int bits) {
 }
 //---------------------------------------------------------------------------------------------------------------------
 /* limited to 32 at a time */
-void oggpack_adv(oggpack_buffer *b, int bits) {
+void oggpack_adv(oggpack_buffer *b, uint16_t bits) {
 	bits += b->headbit;
 	b->headbit = bits & 7;
 	b->headend -= (bits >> 3);
@@ -1382,13 +1390,13 @@ void oggpack_adv(oggpack_buffer *b, int bits) {
 }
 //---------------------------------------------------------------------------------------------------------------------
 /* bits <= 32 */
-int32_t oggpack_read(oggpack_buffer *b, int bits) {
+int32_t oggpack_read(oggpack_buffer *b, uint16_t bits) {
 	int32_t ret = oggpack_look(b, bits);
 	oggpack_adv(b, bits);
 	return (ret);
 }
 //---------------------------------------------------------------------------------------------------------------------
-uint32_t decpack(int32_t entry, int32_t used_entry, int32_t quantvals, codebook *b, oggpack_buffer *opb, int maptype) {
+uint32_t decpack(int32_t entry, int32_t used_entry, uint8_t quantvals, codebook *b, oggpack_buffer *opb, int maptype) {
 	uint32_t ret = 0;
 
 	switch(b->dec_type) {
@@ -1457,7 +1465,7 @@ int32_t _float32_unpack(int32_t val, int *point) {
 }
 //---------------------------------------------------------------------------------------------------------------------
 /* choose the smallest supported node size that fits our decode table. Legal bytewidths are 1/1 1/2 2/2 2/4 4/4 */
-int _determine_node_bytes(uint32_t used, int leafwidth) {
+int _determine_node_bytes(uint32_t used, uint8_t leafwidth) {
 	/* special case small books to size 4 to avoid multiple special cases in repack */
 	if(used < 2) return 4;
 
@@ -1473,9 +1481,10 @@ int _determine_leaf_words(int nodeb, int leafwidth) {
 }
 //---------------------------------------------------------------------------------------------------------------------
 /* given a list of word lengths, number of used entries, and byte width of a leaf, generate the decode table */
-int _make_words(char *l, uint32_t n, uint32_t *r, int32_t quantvals, codebook *b, oggpack_buffer *opb, int maptype) {
+int _make_words(char *l, uint16_t n, uint32_t *r, uint8_t quantvals, codebook *b, oggpack_buffer *opb, int maptype) {
+
 	int32_t  i, j, count = 0;
-	int32_t  top = 0;
+	uint32_t  top = 0;
 	uint32_t marker[33];
 
 	if(n < 2) { r[0] = 0x80000000; }
@@ -1486,12 +1495,12 @@ int _make_words(char *l, uint32_t n, uint32_t *r, int32_t quantvals, codebook *b
 			int32_t length = l[i];
 			if(length) {
 				uint32_t entry = marker[length];
-				int32_t  chase = 0;
+				uint32_t  chase = 0;
 				if(count && !entry) return -1; /* overpopulated tree! */
 
 				/* chase the tree as far as it's already populated, fill in past */
 				for(j = 0; j < length - 1; j++) {
-					int bit = (entry >> (length - j - 1)) & 1;
+					uint32_t bit = (entry >> (length - j - 1)) & 1;
 					if(chase >= top) {
 						top++;
 						r[chase * 2] = top;
@@ -1535,7 +1544,7 @@ int _make_words(char *l, uint32_t n, uint32_t *r, int32_t quantvals, codebook *b
 	return 0;
 }
 //---------------------------------------------------------------------------------------------------------------------
-int _make_decode_table(codebook *s, char *lengthlist, int32_t quantvals, oggpack_buffer *opb, int maptype) {
+int _make_decode_table(codebook *s, char *lengthlist, uint8_t quantvals, oggpack_buffer *opb, int maptype) {
 	uint32_t *work;
 
 	if(s->dec_nodeb == 4) {
@@ -1644,10 +1653,10 @@ int _make_decode_table(codebook *s, char *lengthlist, int32_t quantvals, oggpack
  codebooks like that */
 /* there might be a straightforward one-line way to do the below that's portable and totally safe against roundoff, but
  I haven't thought of it.  Therefore, we opt on the side of caution */
-uint32_t _book_maptype1_quantvals(codebook *b) {
+uint8_t _book_maptype1_quantvals(codebook *b) {
 	/* get us a starting hint, we'll polish it below */
-	uint8_t  bits = _ilog(b->entries);
-	uint32_t vals = b->entries >> ((bits - 1) * (b->dim - 1) / b->dim);
+	uint8_t bits = _ilog(b->entries);
+	uint8_t vals = b->entries >> ((bits - 1) * (b->dim - 1) / b->dim);
 
 	while(1) {
 		uint32_t acc  = 1;
@@ -1657,7 +1666,7 @@ uint32_t _book_maptype1_quantvals(codebook *b) {
 			acc *= vals;
 			acc1 *= vals + 1;
 		}
-		if(acc <= b->entries && acc1 > b->entries) { return (vals); }
+		if(acc <= b->entries && acc1 > b->entries) { printf("vals %i\n", vals); return (vals); }
 		else {
 			if(acc > b->entries) { vals--; }
 			else { vals++; }
@@ -1681,7 +1690,7 @@ int oggpack_eop(oggpack_buffer *b) {
 //---------------------------------------------------------------------------------------------------------------------
 int vorbis_book_unpack(oggpack_buffer *opb, codebook *s) {
 	char     *lengthlist = NULL;
-	uint32_t  quantvals = 0;
+	uint8_t   quantvals = 0;
 	int32_t   i, j;
 	int       maptype;
 	int ret = 0;
@@ -2041,7 +2050,7 @@ int32_t vorbis_book_decodevs_add(codebook *book, int32_t *a, oggpack_buffer *b, 
 	if(book->used_entries > 0) {
 		int      step = n / book->dim;
 		int32_t *v = (int32_t *)alloca(sizeof(*v) * book->dim);
-		int      j, o;
+		int      j;
 
 		for(j = 0; j < step; j++) {
 			if(decode_map(book, b, v, point)) return -1;
@@ -3942,6 +3951,7 @@ errout:
 //---------------------------------------------------------------------------------------------------------------------
 int res_inverse(vorbis_dsp_state *vd, vorbis_info_residue *info, int32_t **in, int *nonzero, uint8_t ch) {
 	int               j, k, s;
+	uint8_t 		  m = 0, n = 0;
 	uint8_t           used = 0;
 	codec_setup_info *ci = (codec_setup_info *)vd->vi->codec_setup;
 	codebook         *phrasebook = ci->book_param + info->groupbook;
@@ -3952,10 +3962,10 @@ int res_inverse(vorbis_dsp_state *vd, vorbis_info_residue *info, int32_t **in, i
 	if(info->type < 2) {
 		uint32_t max = pcmend >> 1;
 		uint32_t end = (info->end < max ? info->end : max);
-		uint32_t n = end - info->begin;
+		uint32_t n1 = end - info->begin;
 
-		if(n > 0) {
-			uint32_t  partvals = n / samples_per_partition;
+		if(n1 > 0) {
+			uint32_t  partvals = n1 / samples_per_partition;
 			uint32_t  partwords = (partvals + partitions_per_word - 1) / partitions_per_word;
 
 			for(uint8_t i = 0; i < ch; i++)
@@ -3980,16 +3990,16 @@ int res_inverse(vorbis_dsp_state *vd, vorbis_info_residue *info, int32_t **in, i
 								for(k = partitions_per_word - 1; k >= 0; k--)
 									partword[j][i + k] = partword[j - 1][i + k];
 
-							for(j = 0; j < ch; j++) {
+							for(n = 0; n < ch; n++) {
 								int temp = vorbis_book_decode(phrasebook, &vd->opb);
 								if(temp == -1) goto eopbreak;
 
 								/* this can be done quickly in assembly due to the quotient
 								 always being at most six bits */
-								for(k = 0; k < partitions_per_word; k++) {
-									uint32_t div = partword[j][i + k];
-									partword[j][i + k] = temp / div;
-									temp -= partword[j][i + k] * div;
+								for(m = 0; m < partitions_per_word; m++) {
+									char div = partword[n][i + m];
+									partword[n][i + m] = temp / div;
+									temp -= partword[n][i + m] * div;
 								}
 							}
 						}
@@ -3997,7 +4007,7 @@ int res_inverse(vorbis_dsp_state *vd, vorbis_info_residue *info, int32_t **in, i
 						/* now we decode residual values for the partitions */
 						for(k = 0; k < partitions_per_word && i < partvals; k++, i++){
 							for(j = 0; j < ch; j++) {
-								int32_t offset = info->begin + i * samples_per_partition;
+								uint32_t offset = info->begin + i * samples_per_partition;
 								if(info->stagemasks[(int)partword[j][i]] & (1 << s)) {
 									codebook *stagebook = ci->book_param + info->stagebooks[(partword[j][i] << 3) + s];
 									if(info->type) {

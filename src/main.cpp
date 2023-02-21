@@ -14,7 +14,7 @@ int main() {
 	// char buff[100];
 
 	FILE *fptrIn = NULL;
-	fptrIn = fopen("in.ogg", "r");
+	fptrIn = fopen("in1.ogg", "r");
 	if(fptrIn == NULL) {
 		printf("in.ogg not found\n");
 		exit(1);
@@ -39,7 +39,7 @@ int main() {
 		++ptr;
 	}
 	fprintf(stderr, "\nBitstream is %d channel, %idHz\n", vi->channels, vi->rate);
-	fprintf(stderr, "\nDecoded length: %ld samples\n", (int32_t)ov_pcm_total(&vf, -1));
+	fprintf(stderr, "\nDecoded length: %i samples\n", (int32_t)ov_pcm_total(&vf, -1));
 	fprintf(stderr, "Encoded by: %s\n\n", ov_comment(&vf, -1)->vendor);
 
 	// Write the WAV header

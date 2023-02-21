@@ -1,1 +1,7 @@
 src/out.wav
+src/in.ogg
+src/in1.ogg
+src/build/Debug/main.o
+src/build/Debug/outDebug
+src/build/Debug/vorbisDecoder.o
+src/build/Debug/vorbisfile.o

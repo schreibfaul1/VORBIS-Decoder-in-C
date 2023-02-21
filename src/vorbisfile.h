@@ -313,10 +313,10 @@ vorbis_comment *ov_comment(OggVorbis_File *vf, int link);
 int32_t         ov_read(OggVorbis_File *vf, void *buffer, int bytes_req);
 
 void    oggpack_readinit(oggpack_buffer_t *b, ogg_reference_t *r);
-int32_t oggpack_look(oggpack_buffer_t *b, int bits);
-void    oggpack_adv(oggpack_buffer_t *b, int bits);
+int32_t oggpack_look(oggpack_buffer_t *b, uint16_t bits);
+void    oggpack_adv(oggpack_buffer_t *b, uint16_t bits);
 int     oggpack_eop(oggpack_buffer_t *b);
-int32_t oggpack_read(oggpack_buffer_t *b, int bits);
+int32_t oggpack_read(oggpack_buffer_t *b, uint16_t bits);
 int32_t oggpack_bytes(oggpack_buffer_t *b);
 int32_t oggpack_bits(oggpack_buffer_t *b);
 

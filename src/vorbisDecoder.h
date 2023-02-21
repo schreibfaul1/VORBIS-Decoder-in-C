@@ -1,5 +1,6 @@
 #pragma once
 #pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <stdint.h>
 #include <stdio.h>
 #include "vorbisfile.h"
@@ -62,8 +63,8 @@
 //---------------------------------------------------------------------------------------------------------------------
 typedef struct codebook{
 	uint8_t  dim;          /* codebook dimensions (elements per vector) */
-	uint32_t entries;      /* codebook entries */
-	uint32_t used_entries; /* populated codebook entries */
+	uint16_t entries;      /* codebook entries */
+	uint16_t used_entries; /* populated codebook entries */
 	uint32_t dec_maxlength;
 	void    *dec_table;
 	uint32_t dec_nodeb;
@@ -164,13 +165,13 @@ inline int32_t CLIP_TO_15(int32_t x) {
 //---------------------------------------------------------------------------------------------------------------------
 void     _span(oggpack_buffer_t *b);
 uint8_t  _ilog(uint32_t v);
-uint32_t decpack(int32_t entry, int32_t used_entry, int32_t quantvals, codebook *b, oggpack_buffer_t *opb, int maptype);
+uint32_t decpack(int32_t entry, int32_t used_entry, uint8_t quantvals, codebook *b, oggpack_buffer_t *opb, int maptype);
 int32_t  _float32_unpack(int32_t val, int *point);
-int      _determine_node_bytes(uint32_t used, int leafwidth);
+int      _determine_node_bytes(uint32_t used, uint8_t leafwidth);
 int      _determine_leaf_words(int nodeb, int leafwidth);
-int      _make_words(char *l, uint32_t n, uint32_t *r, int32_t quantvals, codebook *b, oggpack_buffer_t *opb, int maptype);
-int      _make_decode_table(codebook *s, char *lengthlist, int32_t quantvals, oggpack_buffer_t *opb, int maptype);
-uint32_t _book_maptype1_quantvals(codebook *b);
+int      _make_words(char *l, uint16_t n, uint32_t *r, uint8_t quantvals, codebook *b, oggpack_buffer_t *opb, int maptype);
+int      _make_decode_table(codebook *s, char *lengthlist, uint8_t quantvals, oggpack_buffer_t *opb, int maptype);
+uint8_t  _book_maptype1_quantvals(codebook *b);
 void     vorbis_book_clear(codebook *b);
 int      vorbis_book_unpack(oggpack_buffer_t *opb, codebook *s);
 uint32_t decode_packed_entry_number(codebook *book, oggpack_buffer_t *b);
