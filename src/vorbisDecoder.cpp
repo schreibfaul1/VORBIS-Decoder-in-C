@@ -17,7 +17,7 @@
 #pragma GCC diagnostic ignored "-Wtype-limits"
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Wshift-negative-value"
+//#pragma GCC diagnostic ignored "-Wshift-negative-value"
 
 #include "vorbisDecoder.h"
 #include <ctype.h>
@@ -1678,7 +1678,7 @@ uint8_t _book_maptype1_quantvals(codebook *b) {
 			acc *= vals;
 			acc1 *= vals + 1;
 		}
-		if(acc <= b->entries && acc1 > b->entries) { printf("vals %i\n", vals); return (vals); }
+		if(acc <= b->entries && acc1 > b->entries) { return (vals); }
 		else {
 			if(acc > b->entries) { vals--; }
 			else { vals++; }
@@ -2387,7 +2387,7 @@ int vorbis_dsp_synthesis(vorbis_dsp_state *vd, ogg_packet *op, int decodep) {
 
 int32_t vorbis_fromdBlook_i(int32_t a) {
 	if(a > 0) return 0x7fffffff;
-	if(a < (-140 << 12)) return 0;
+    if(a < -573440) return 0; // replacement for if(a < (-140 << 12)) return 0;
 	return FLOOR_fromdB_LOOKUP[((a + (140 << 12)) * 467) >> 20];
 }
 //---------------------------------------------------------------------------------------------------------------------
