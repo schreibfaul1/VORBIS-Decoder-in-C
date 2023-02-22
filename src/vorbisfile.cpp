@@ -100,7 +100,6 @@ int32_t _get_data(OggVorbis_File *vf) {
 		uint8_t *buffer = ogg_sync_bufferin(vf->oy, CHUNKSIZE);
 
 		int32_t  bytes = fread(buffer, 1, CHUNKSIZE, vf->datasource);
-	//	int32_t  bytes = (vf->callbacks.read_func)(buffer, 1, CHUNKSIZE, vf->datasource);
 		if(bytes > 0) ogg_sync_wrote(vf->oy, bytes);
 		if(bytes == 0 && errno) return -1;
 		return bytes;
@@ -112,7 +111,6 @@ int32_t _get_data(OggVorbis_File *vf) {
 /* save a tiny smidge of verbosity to make the code more readable */
 void _seek_helper(OggVorbis_File *vf, int64_t offset) {
 	if(vf->datasource) {
-//		(vf->callbacks.seek_func)(vf->datasource, offset, SEEK_SET);
 		vf->offset = offset;
 		ogg_sync_reset(vf->oy);
 	}
@@ -639,7 +637,7 @@ int _fseek64_wrap(FILE *f, int64_t off, int whence) {
 	return fseek(f, off, whence);
 }
 
-int _ov_open1(FILE *f, OggVorbis_File *vf, char *initial, int32_t ibytes) {
+int _ov_open1(FILE *f, OggVorbis_File *vf) {
 	int ret;
 
 	memset(vf, 0, sizeof(*vf));
@@ -649,18 +647,9 @@ int _ov_open1(FILE *f, OggVorbis_File *vf, char *initial, int32_t ibytes) {
 	if((-1 >> 1) != -1) return OV_EIMPL;
 
 	vf->datasource = f;
-//	vf->callbacks = callbacks;
 
 	/* init the framing state */
 	vf->oy = ogg_sync_create();
-
-	/* perhaps some data was previously read into a buffer for testing against other stream types.  Allow
-	 initialization from this previously read data (as we may be reading from a non-seekable stream) */
-	if(initial) {
-		uint8_t *buffer = ogg_sync_bufferin(vf->oy, ibytes);
-		memcpy(buffer, initial, ibytes);
-		ogg_sync_wrote(vf->oy, ibytes);
-	}
 
 	/* No seeking yet; Set up a 'single' (current) logical bitstream
 	 entry for partial open */
@@ -710,22 +699,10 @@ int ov_clear(OggVorbis_File *vf) {
 	return 0;
 }
 
-/* inspects the OggVorbis file and finds/documents all the logical
- bitstreams contained in it.  Tries to be tolerant of logical
- bitstream sections that are truncated/woogie.
-
- return: -1) error
- 0) OK
- */
-
-int ov_open_callbacks(FILE *f, OggVorbis_File *vf, char *initial, int32_t ibytes) {
-	int ret = _ov_open1(f, vf, initial, ibytes);
+int ov_open(FILE *f, OggVorbis_File *vf) {
+	int ret = _ov_open1(f, vf);
 	if(ret) return ret;
 	return _ov_open2(vf);
-}
-
-int ov_open(FILE *f, OggVorbis_File *vf, char *initial, int32_t ibytes) {
-	return ov_open_callbacks((FILE *)f, vf, initial, ibytes);
 }
 
 /* returns the bitrate for a given logical bitstream or the entire

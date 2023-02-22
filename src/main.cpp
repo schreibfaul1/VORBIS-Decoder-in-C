@@ -27,7 +27,7 @@ int main() {
 		exit(1);
 	}
 
-	if(ov_open(fptrIn, &vf, NULL, 0) < 0) {
+	if(ov_open(fptrIn, &vf) < 0) {
 		printf("Input does not appear to be an Ogg bitstream.\n");
 		exit(1);
 	}
