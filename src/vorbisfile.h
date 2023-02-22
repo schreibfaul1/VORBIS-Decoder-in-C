@@ -253,7 +253,7 @@ typedef struct vorbis_dsp_state vorbis_dsp_state;
 
 typedef struct OggVorbis_File
 {
-	void               *datasource; /* Pointer to a FILE *, etc. */
+	FILE               *datasource; /* Pointer to a FILE *, etc. */
 	int                 seekable;
 	int64_t             offset;
 	int64_t             end;
@@ -290,7 +290,7 @@ int     _make_decode_ready(OggVorbis_File *vf);
 int     _open_seekable2(OggVorbis_File *vf);
 int     _fetch_and_process_packet(OggVorbis_File *vf, int readp, int spanp);
 int     _fseek64_wrap(FILE *f, int64_t off, int whence);
-int     _ov_open1(void *f, OggVorbis_File *vf, char *initial, int32_t ibytes, ov_callbacks callbacks);
+int     _ov_open1(FILE *f, OggVorbis_File *vf, char *initial, int32_t ibytes, ov_callbacks callbacks);
 int     _ov_open2(OggVorbis_File *vf);
 int     ov_clear(OggVorbis_File *vf);
 int     ov_open_callbacks(void *f, OggVorbis_File *vf, char *initial, int32_t ibytes, ov_callbacks callbacks);

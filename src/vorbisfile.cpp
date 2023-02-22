@@ -36,37 +36,24 @@
 #define LINKSET   4 /* serialno and link set to current link */
 #define INITSET   5
 
-// int ov_raw_seek(OggVorbis_File *vf, int64_t pos); // proto
+/* A 'chained bitstream' is a Vorbis bitstream that contains more than one logical bitstream arranged end to end (the
+ only form of Ogg multiplexing allowed in a Vorbis bitstream; grouping [parallel  multiplexing] is not allowed in
+ Vorbis). A Vorbis file can be played beginning to end (streamed) without worrying ahead of time about chaining (see
+ decoder_example.c). If we have the whole file, however, and want random access (seeking/scrubbing) or desire to know
+ the total length/time of a file, we need to account for the possibility of chaining. */
 
-/* A 'chained bitstream' is a Vorbis bitstream that contains more than
- one logical bitstream arranged end to end (the only form of Ogg
- multiplexing allowed in a Vorbis bitstream; grouping [parallel
- multiplexing] is not allowed in Vorbis) */
+/* We can handle things a number of ways; we can determine the entire bitstream structure right off the bat, or find
+ pieces on demand. This example determines and caches structure for the entire bitstream, but builds a virtual decoder
+ on the fly when moving between links in the chain. */
 
-/* A Vorbis file can be played beginning to end (streamed) without
- worrying ahead of time about chaining (see decoder_example.c).  If
- we have the whole file, however, and want random access
- (seeking/scrubbing) or desire to know the total length/time of a
- file, we need to account for the possibility of chaining. */
+/* There are also different ways to implement seeking. Enough information exists in an Ogg bitstream to seek to
+ sample-granularity positions in the output. Or, one can seek by picking some portion of the stream roughly in the
+ desired area if we only want coarse navigation through the stream. */
 
-/* We can handle things a number of ways; we can determine the entire
- bitstream structure right off the bat, or find pieces on demand.
- This example determines and caches structure for the entire
- bitstream, but builds a virtual decoder on the fly when moving
- between links in the chain. */
+/* returns the number of packets that are completed on this page (if the leading packet is begun on a previous page,
+ but ends on this page, it's counted */
 
-/* There are also different ways to implement seeking.  Enough
- information exists in an Ogg bitstream to seek to
- sample-granularity positions in the output.  Or, one can seek by
- picking some portion of the stream roughly in the desired area if
- we only want coarse navigation through the stream. */
-
-/* returns the number of packets that are completed on this page (if
- the leading packet is begun on a previous page, but ends on this
- page, it's counted */
-
-/* Static CRC calculation table.  See older code in CVS for dead
- run-time initialization code. */
+/* Static CRC calculation table.  See older code in CVS for dead run-time initialization code. */
 //---------------------------------------------------------------------------------------------------------------------
 const uint32_t crc_lookup[256] = {
 	0x00000000, 0x04c11db7, 0x09823b6e, 0x0d4326d9, 0x130476dc, 0x17c56b6b, 0x1a864db2, 0x1e475005, 0x2608edb8,
@@ -111,7 +98,9 @@ int32_t _get_data(OggVorbis_File *vf) {
 	errno = 0;
 	if(vf->datasource) {
 		uint8_t *buffer = ogg_sync_bufferin(vf->oy, CHUNKSIZE);
-		int32_t  bytes = (vf->callbacks.read_func)(buffer, 1, CHUNKSIZE, vf->datasource);
+
+		int32_t  bytes = fread(buffer, 1, CHUNKSIZE, vf->datasource);
+	//	int32_t  bytes = (vf->callbacks.read_func)(buffer, 1, CHUNKSIZE, vf->datasource);
 		if(bytes > 0) ogg_sync_wrote(vf->oy, bytes);
 		if(bytes == 0 && errno) return -1;
 		return bytes;
@@ -650,7 +639,7 @@ int _fseek64_wrap(FILE *f, int64_t off, int whence) {
 	return fseek(f, off, whence);
 }
 
-int _ov_open1(void *f, OggVorbis_File *vf, char *initial, int32_t ibytes, ov_callbacks callbacks) {
+int _ov_open1(FILE *f, OggVorbis_File *vf, char *initial, int32_t ibytes, ov_callbacks callbacks) {
 	int ret;
 
 	memset(vf, 0, sizeof(*vf));
@@ -729,7 +718,7 @@ int ov_clear(OggVorbis_File *vf) {
  0) OK
  */
 
-int ov_open_callbacks(void *f, OggVorbis_File *vf, char *initial, int32_t ibytes, ov_callbacks callbacks) {
+int ov_open_callbacks(FILE *f, OggVorbis_File *vf, char *initial, int32_t ibytes, ov_callbacks callbacks) {
 	int ret = _ov_open1(f, vf, initial, ibytes, callbacks);
 	if(ret) return ret;
 	return _ov_open2(vf);
@@ -739,7 +728,7 @@ int ov_open(FILE *f, OggVorbis_File *vf, char *initial, int32_t ibytes) {
 	ov_callbacks callbacks = {(size_t(*)(void *, size_t, size_t, void *))fread,
 							  (int (*)(void *))fclose,
 							  };
-	return ov_open_callbacks((void *)f, vf, initial, ibytes, callbacks);
+	return ov_open_callbacks((FILE *)f, vf, initial, ibytes, callbacks);
 }
 
 /* returns the bitrate for a given logical bitstream or the entire
