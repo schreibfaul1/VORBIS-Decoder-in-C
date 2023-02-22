@@ -123,7 +123,7 @@ int32_t _get_data(OggVorbis_File *vf) {
 /* save a tiny smidge of verbosity to make the code more readable */
 void _seek_helper(OggVorbis_File *vf, int64_t offset) {
 	if(vf->datasource) {
-		(vf->callbacks.seek_func)(vf->datasource, offset, SEEK_SET);
+//		(vf->callbacks.seek_func)(vf->datasource, offset, SEEK_SET);
 		vf->offset = offset;
 		ogg_sync_reset(vf->oy);
 	}
@@ -458,12 +458,6 @@ int _open_seekable2(OggVorbis_File *vf) {
 	int64_t  dataoffset = vf->offset, end;
 	ogg_page og = {0, 0, 0, 0};
 
-	/* we're partially open and have a first link header state in
-	 storage in vf */
-	/* we can seek, so set out learning all about this file */
-	(vf->callbacks.seek_func)(vf->datasource, 0, SEEK_END);
-	vf->offset = vf->end = (vf->callbacks.tell_func)(vf->datasource);
-
 	/* We get the offset for the last page of the physical bitstream.
 	 Most OggVorbis files will contain a single logical bitstream */
 	end = _get_prev_page(vf, &og);
@@ -657,7 +651,6 @@ int _fseek64_wrap(FILE *f, int64_t off, int whence) {
 }
 
 int _ov_open1(void *f, OggVorbis_File *vf, char *initial, int32_t ibytes, ov_callbacks callbacks) {
-	int offsettest = (f ? callbacks.seek_func(f, 0, SEEK_CUR) : -1);
 	int ret;
 
 	memset(vf, 0, sizeof(*vf));
@@ -672,18 +665,13 @@ int _ov_open1(void *f, OggVorbis_File *vf, char *initial, int32_t ibytes, ov_cal
 	/* init the framing state */
 	vf->oy = ogg_sync_create();
 
-	/* perhaps some data was previously read into a buffer for testing
-	 against other stream types.  Allow initialization from this
-	 previously read data (as we may be reading from a non-seekable
-	 stream) */
+	/* perhaps some data was previously read into a buffer for testing against other stream types.  Allow
+	 initialization from this previously read data (as we may be reading from a non-seekable stream) */
 	if(initial) {
 		uint8_t *buffer = ogg_sync_bufferin(vf->oy, ibytes);
 		memcpy(buffer, initial, ibytes);
 		ogg_sync_wrote(vf->oy, ibytes);
 	}
-
-	/* can we seek? Stevens suggests the seek test was portable */
-	if(offsettest != -1) vf->seekable = 1;
 
 	/* No seeking yet; Set up a 'single' (current) logical bitstream
 	 entry for partial open */
@@ -749,8 +737,8 @@ int ov_open_callbacks(void *f, OggVorbis_File *vf, char *initial, int32_t ibytes
 
 int ov_open(FILE *f, OggVorbis_File *vf, char *initial, int32_t ibytes) {
 	ov_callbacks callbacks = {(size_t(*)(void *, size_t, size_t, void *))fread,
-							  (int (*)(void *, int64_t, int))_fseek64_wrap, (int (*)(void *))fclose,
-							  (int32_t(*)(void *))ftell};
+							  (int (*)(void *))fclose,
+							  };
 	return ov_open_callbacks((void *)f, vf, initial, ibytes, callbacks);
 }
 
@@ -1147,7 +1135,7 @@ vorbis_comment *ov_comment(OggVorbis_File *vf, int link) {
 
  *section) set to the logical bitstream number */
 
-int32_t ov_read(OggVorbis_File *vf, void *buffer, int bytes_req) {
+int32_t ov_read(OggVorbis_File *vf, void *outBuff, int bytes_req) {
 	int32_t samples;
 	int32_t channels;
 
@@ -1156,7 +1144,7 @@ int32_t ov_read(OggVorbis_File *vf, void *buffer, int bytes_req) {
 	while(1) {
 		if(vf->ready_state == INITSET) {
 			channels = vf->vi.channels;
-			samples = vorbis_dsp_pcmout(vf->vd, (int16_t *)buffer, (bytes_req >> 1) / channels);
+			samples = vorbis_dsp_pcmout(vf->vd, (int16_t *)outBuff, (bytes_req >> 1) / channels);
 			if(samples) {
 				if(samples > 0) {
 					vorbis_dsp_read(vf->vd, samples);

@@ -2219,17 +2219,17 @@ int32_t *_vorbis_window(int left) {
 }
 //---------------------------------------------------------------------------------------------------------------------
 /* pcm==0 indicates we just want the pending samples, no more */
-int vorbis_dsp_pcmout(vorbis_dsp_state *v, int16_t *pcm, int samples) {
+int vorbis_dsp_pcmout(vorbis_dsp_state *v, int16_t *outBuff, int samples) {
 	vorbis_info      *vi = v->vi;
 	codec_setup_info *ci = (codec_setup_info *)vi->codec_setup;
 	if(v->out_begin > -1 && v->out_begin < v->out_end) {
 		int n = v->out_end - v->out_begin;
-		if(pcm) {
+		if(outBuff) {
 			int i;
 			if(n > samples) n = samples;
 			for(i = 0; i < vi->channels; i++)
 				mdct_unroll_lap(ci->blocksizes[0], ci->blocksizes[1], v->lW, v->W, v->work[i], v->mdctright[i],
-								_vorbis_window(ci->blocksizes[0] >> 1), _vorbis_window(ci->blocksizes[1] >> 1), pcm + i,
+								_vorbis_window(ci->blocksizes[0] >> 1), _vorbis_window(ci->blocksizes[1] >> 1), outBuff + i,
 								vi->channels, v->out_begin, v->out_begin + n);
 		}
 		return (n);

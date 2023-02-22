@@ -198,7 +198,7 @@ int      vorbis_dsp_restart(vorbis_dsp_state *v);
 vorbis_dsp_state *vorbis_dsp_create(vorbis_info *vi);
 void              vorbis_dsp_destroy(vorbis_dsp_state *v);
 int32_t          *_vorbis_window(int left);
-int               vorbis_dsp_pcmout(vorbis_dsp_state *v, int16_t *pcm, int samples);
+int               vorbis_dsp_pcmout(vorbis_dsp_state *v, int16_t *outBuff, int samples);
 int               vorbis_dsp_read(vorbis_dsp_state *v, int s);
 int32_t           vorbis_packet_blocksize(vorbis_info *vi, ogg_packet *op);
 int               vorbis_dsp_synthesis(vorbis_dsp_state *vd, ogg_packet *op, int decodep);

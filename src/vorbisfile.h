@@ -245,9 +245,7 @@ typedef struct vorbis_comment
 typedef struct
 {
 	size_t (*read_func)(void *ptr, size_t size, size_t nmemb, void *datasource);
-	int (*seek_func)(void *datasource, int64_t offset, int whence);
 	int (*close_func)(void *datasource);
-	int32_t (*tell_func)(void *datasource);
 } ov_callbacks;
 
 struct vorbis_dsp_state;
@@ -307,7 +305,7 @@ int     ov_raw_seek(OggVorbis_File *vf, int64_t pos);
 int     ov_pcm_seek(OggVorbis_File *vf, int64_t pos);
 vorbis_info    *ov_info(OggVorbis_File *vf, int link);
 vorbis_comment *ov_comment(OggVorbis_File *vf, int link);
-int32_t         ov_read(OggVorbis_File *vf, void *buffer, int bytes_req);
+int32_t         ov_read(OggVorbis_File *vf, void *outBuff, int bytes_req);
 
 void    oggpack_readinit(oggpack_buffer_t *b, ogg_reference_t *r);
 int32_t oggpack_look(oggpack_buffer_t *b, uint16_t bits);
