@@ -244,7 +244,8 @@ typedef struct vorbis_comment
 
 typedef struct
 {
-	size_t (*read_func)(void *ptr, size_t size, size_t nmemb, void *datasource);
+
+//	size_t (*read_func)(void *ptr, size_t size, size_t nmemb, void *datasource);
 	int (*close_func)(void *datasource);
 } ov_callbacks;
 
@@ -290,10 +291,10 @@ int     _make_decode_ready(OggVorbis_File *vf);
 int     _open_seekable2(OggVorbis_File *vf);
 int     _fetch_and_process_packet(OggVorbis_File *vf, int readp, int spanp);
 int     _fseek64_wrap(FILE *f, int64_t off, int whence);
-int     _ov_open1(FILE *f, OggVorbis_File *vf, char *initial, int32_t ibytes, ov_callbacks callbacks);
+int     _ov_open1(FILE *f, OggVorbis_File *vf, char *initial, int32_t ibytes);
 int     _ov_open2(OggVorbis_File *vf);
 int     ov_clear(OggVorbis_File *vf);
-int     ov_open_callbacks(void *f, OggVorbis_File *vf, char *initial, int32_t ibytes, ov_callbacks callbacks);
+int     ov_open_callbacks(void *f, OggVorbis_File *vf, char *initial, int32_t ibytes);
 int     ov_open(FILE *f, OggVorbis_File *vf, char *initial, int32_t ibytes);
 int32_t ov_bitrate(OggVorbis_File *vf, int i);
 int32_t ov_bitrate_instant(OggVorbis_File *vf);

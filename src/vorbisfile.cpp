@@ -639,7 +639,7 @@ int _fseek64_wrap(FILE *f, int64_t off, int whence) {
 	return fseek(f, off, whence);
 }
 
-int _ov_open1(FILE *f, OggVorbis_File *vf, char *initial, int32_t ibytes, ov_callbacks callbacks) {
+int _ov_open1(FILE *f, OggVorbis_File *vf, char *initial, int32_t ibytes) {
 	int ret;
 
 	memset(vf, 0, sizeof(*vf));
@@ -649,7 +649,7 @@ int _ov_open1(FILE *f, OggVorbis_File *vf, char *initial, int32_t ibytes, ov_cal
 	if((-1 >> 1) != -1) return OV_EIMPL;
 
 	vf->datasource = f;
-	vf->callbacks = callbacks;
+//	vf->callbacks = callbacks;
 
 	/* init the framing state */
 	vf->oy = ogg_sync_create();
@@ -704,7 +704,7 @@ int ov_clear(OggVorbis_File *vf) {
 		if(vf->offsets) free(vf->offsets);
 		ogg_sync_destroy(vf->oy);
 
-		if(vf->datasource) (vf->callbacks.close_func)(vf->datasource);
+		if(vf->datasource)  fclose(vf->datasource);
 		memset(vf, 0, sizeof(*vf));
 	}
 	return 0;
@@ -718,17 +718,14 @@ int ov_clear(OggVorbis_File *vf) {
  0) OK
  */
 
-int ov_open_callbacks(FILE *f, OggVorbis_File *vf, char *initial, int32_t ibytes, ov_callbacks callbacks) {
-	int ret = _ov_open1(f, vf, initial, ibytes, callbacks);
+int ov_open_callbacks(FILE *f, OggVorbis_File *vf, char *initial, int32_t ibytes) {
+	int ret = _ov_open1(f, vf, initial, ibytes);
 	if(ret) return ret;
 	return _ov_open2(vf);
 }
 
 int ov_open(FILE *f, OggVorbis_File *vf, char *initial, int32_t ibytes) {
-	ov_callbacks callbacks = {(size_t(*)(void *, size_t, size_t, void *))fread,
-							  (int (*)(void *))fclose,
-							  };
-	return ov_open_callbacks((FILE *)f, vf, initial, ibytes, callbacks);
+	return ov_open_callbacks((FILE *)f, vf, initial, ibytes);
 }
 
 /* returns the bitrate for a given logical bitstream or the entire
